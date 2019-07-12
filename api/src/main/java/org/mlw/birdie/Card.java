@@ -1,6 +1,7 @@
 package org.mlw.birdie;
 
 public class Card {
+
     private Suit suit = null;
     public enum Suit{
         Red,Black,Yellow,Green

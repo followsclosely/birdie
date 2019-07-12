@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Hand {
+    private int seats;
     private int dealerIndex = 0;
     private List<List<Card>> cards;
     private List<Card> kitty = new ArrayList<>(5);
@@ -13,6 +14,7 @@ public class Hand {
     private Card.Suit trump;
 
     public Hand(int seats, int dealerIndex) {
+        this.seats = seats;
         this.dealerIndex = dealerIndex;
         this.cards = new ArrayList<List<Card>>(seats);
         for(int i=0; i<seats; i++){
@@ -38,6 +40,10 @@ public class Hand {
         return max;
     }
 
+    public boolean isTrump(Card card){
+        return card.getSuit().equals(trump);
+    }
+
     public Card.Suit getTrump() { return trump; }
     public void setTrump(Card.Suit trump) {
         this.trump = trump;
@@ -60,5 +66,22 @@ public class Hand {
         Trick trick = new Trick(leader);
         tricks.add(trick);
         return trick;
+    }
+
+    public int[] getScores(){
+        int[] scores = new int[seats];
+
+        int winner = dealerIndex;
+        for(Trick trick : tricks){
+            int points = trick.getPoints();
+            winner = (trick.getWinner() + trick.getLeader()) % seats;
+            scores[winner] += points;
+        }
+
+        //Award the cat points to the last trick.
+        int kittyPoints = kitty.stream().mapToInt(Card::getPoints).sum();
+        scores[winner] += kittyPoints;
+
+        return scores;
     }
 }

@@ -136,10 +136,19 @@ public class RookEngine {
             }
 
             Card lead = trick.getCards().get(0);
+            Card leadTrump = null;
             int winner = 0;
+
             for (int i = 1; i < context.getNumberOfPlayers(); i++) {
                 Card card = trick.getCards().get(i);
-                if (lead.getSuit().equals(card.getSuit()) && lead.getRank() < card.getRank()) {
+
+                if( !hand.isTrump(lead) && hand.isTrump(card)){
+                    if( leadTrump == null || leadTrump.getRank() < card.getRank() ){
+                        leadTrump = card;
+                        trick.setWinner(winner = i);
+                    }
+                }
+                else if (leadTrump ==null && lead.getSuit().equals(card.getSuit()) && lead.getRank() < card.getRank()) {
                     trick.setWinner(winner = i);
                     lead = card;
                 }
@@ -148,7 +157,6 @@ public class RookEngine {
             leader = (leader + winner) % context.getNumberOfPlayers();
 
             System.out.println(trick.getCards() + " " + players[leader].getName() + " won the trick with a " + trick.getCards().get(winner));
-
             System.out.println();
         }
 
@@ -163,5 +171,15 @@ public class RookEngine {
             System.out.print("| " + players[(trick.getLeader() + trick.getWinner()) % context.getNumberOfPlayers()].getName());
             System.out.println(" " + trick.getPoints() + " points");
         }
+
+        int[] scores = hand.getScores();
+
+        int total=0;
+        for(int i=0; i<context.getNumberOfPlayers(); i++){
+            total+=scores[i];
+            System.out.println(players[i].getName() + ": " + scores[i] + " points.");
+        }
+
+        System.out.println("Total:    " + total + " points.");
     }
 }
