@@ -1,4 +1,4 @@
-package org.mlw.birdie.engine;
+package org.mlw.birdie;
 
 import java.util.ArrayList;
 import java.util.Collections;

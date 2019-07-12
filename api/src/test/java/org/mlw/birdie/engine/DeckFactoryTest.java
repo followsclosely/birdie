@@ -2,6 +2,9 @@ package org.mlw.birdie.engine;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.mlw.birdie.Card;
+import org.mlw.birdie.Deck;
+import org.mlw.birdie.DeckFactory;
 
 import java.util.List;
 

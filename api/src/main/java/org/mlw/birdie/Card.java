@@ -1,4 +1,4 @@
-package org.mlw.birdie.engine;
+package org.mlw.birdie;
 
 public class Card {
     private Suit suit = null;
@@ -17,6 +17,8 @@ public class Card {
     }
 
     public Suit getSuit() { return suit; }
+    public void setSuit(Suit suit) { this.suit = this.suit == null ? suit : this.suit; }
+
     public int getNumber() { return number; }
     public int getPoints() { return points; }
     public int getRank() { return rank; }
