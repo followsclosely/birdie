@@ -14,7 +14,7 @@ public class ConsolePlayerAdapter extends AbstractPlayerAdapter {
     public ConsolePlayerAdapter() throws IOException {
         this.seat = 0;
         System.out.println("Enter your Name: ");
-        this.name = readline();
+        this.name = readLine();
         if( this.name == null || this.name.trim().length() == 0){
             this.name = "Player 0";
         }
@@ -26,7 +26,7 @@ public class ConsolePlayerAdapter extends AbstractPlayerAdapter {
         int maxBid = context.getHand().getMaxBid().getValue();
 
         System.out.println("Enter bid greater than or equal to " + maxBid + " (leave blank to pass): ");
-        String line = readline();
+        String line = readLine();
         Integer bid = ( line != null && line.trim().length() > 0) ? Integer.parseInt(line) : null;
         return new Bid(seat, bid);
     }
@@ -53,7 +53,7 @@ public class ConsolePlayerAdapter extends AbstractPlayerAdapter {
 
         System.out.println(cards);
 
-        String line = readline();
+        String line = readLine();
 
         int delta = 0;
         for(String value : line.split(",")){
@@ -66,7 +66,7 @@ public class ConsolePlayerAdapter extends AbstractPlayerAdapter {
         for(Card.Suit suit : Card.Suit.values()){
             System.out.println("  " + suit.ordinal() + ": " + suit);
         }
-        context.getHand().setTrump(Card.Suit.values()[Integer.parseInt(readline())]);
+        context.getHand().setTrump(Card.Suit.values()[Integer.parseInt(readLine())]);
 
         System.out.println( context.getHand().getTrump() + " is Trump!");
 
@@ -87,24 +87,21 @@ public class ConsolePlayerAdapter extends AbstractPlayerAdapter {
         for(int i=0, length=cards.size(); i<length; i++){
             System.out.print("  "+ String.format("%02d", i) + "  ");
         }
-        System.out.println();
-        System.out.println(cards);
-
+        System.out.println("\n" + cards);
 
         System.out.println("Select a Card: ");
-
-        return cards.get(Integer.parseInt(readline()));
+        return cards.get(Integer.parseInt(readLine()));
     }
 
     private BufferedReader reader = null;
-    private synchronized String readline() {
+    private synchronized String readLine() {
         if( reader==null ){
             reader = new BufferedReader(new InputStreamReader(System.in));
         }
         try {
             return reader.readLine();
         } catch (Exception ignore){
-            return readline();
+            return readLine();
         }
     }
 }

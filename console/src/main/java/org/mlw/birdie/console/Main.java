@@ -11,17 +11,16 @@ public class Main {
     public static void main(String[] args) throws IOException {
 
         RookEngine engine = new RookEngine(DeckFactory.getStandardDeck(), 4);
-        engine.addPlayer(new ConsolePlayerAdapter());
+        engine.addPlayer(new RecursivePlayerAdapter(new ConsolePlayerAdapter()));
         for(int i=1; i<4; i++) engine.addPlayer(new BasicPlayerAdapter(String.format("Player %d", i), i));
 
         DefaultGameContext context = engine.createGame();
 
-        engine.processDeal(context);
-        engine.processBidding(context);
-        engine.processKitty(context);
-
-        engine.processHand(context);
-
-
+        for (int i=0; i<5; i++) {
+            engine.processDeal(context);
+            engine.processBidding(context);
+            engine.processKitty(context);
+            engine.processHand(context);
+        }
     }
 }

@@ -125,6 +125,7 @@ public class RookEngine {
             Trick trick = hand.createTrick(leader);
             for (int i = 0; i < context.getNumberOfPlayers(); i++) {
                 PlayerAdapter player = players[(i + leader) % context.getNumberOfPlayers()];
+
                 Card card = player.handleTurn(context);
 
                 //todo: this does not feel right...
@@ -144,8 +145,10 @@ public class RookEngine {
                 }
             }
 
-            System.out.println(trick.getCards() + " " + trick.getCards().get(winner) + " Won the Trick!");
             leader = (leader + winner) % context.getNumberOfPlayers();
+
+            System.out.println(trick.getCards() + " " + players[leader].getName() + " won the trick with a " + trick.getCards().get(winner));
+
             System.out.println();
         }
 
@@ -157,7 +160,8 @@ public class RookEngine {
                 char x = ( trick.getWinner() == index ? '*' : ' ');
                 System.out.print( "|" + x + trick.getCards().get(index) + x);
             }
-            System.out.println("| " + players[(trick.getLeader() + trick.getWinner()) % context.getNumberOfPlayers()].getName());
+            System.out.print("| " + players[(trick.getLeader() + trick.getWinner()) % context.getNumberOfPlayers()].getName());
+            System.out.println(" " + trick.getPoints() + " points");
         }
     }
 }

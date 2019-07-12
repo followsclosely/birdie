@@ -17,4 +17,7 @@ public class Trick {
 
     public int getWinner() { return winner; }
     public void setWinner(int winner) { this.winner = winner; }
+    public int getPoints(){
+        return cards.stream().mapToInt(Card::getPoints).sum();
+    }
 }
