@@ -1,6 +1,6 @@
 package org.mlw.birdie;
 
-public class Card {
+public class Card implements Comparable<Card>{
 
     private Suit suit = null;
     public enum Suit{
@@ -26,5 +26,22 @@ public class Card {
 
     public String toString() {
         return suit == null ? "Rook" : suit.toString().substring(0,1) + "/" + String.format("%02d", number);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if( !(obj instanceof Card) ) return false;
+        Card card2 = (Card) obj;
+        return suit == card2.suit && rank == card2.rank;
+    }
+
+    @Override
+    public int compareTo(Card card2) {
+        if( suit == null || card2.suit == null )
+            return rank == card2.getRank() ? 0 : rank > card2.rank ? 1 : -1;
+        else if (suit != card2.suit)
+            return suit.ordinal() == card2.getSuit().ordinal() ? 0 : suit.ordinal() > card2.getSuit().ordinal() ? 1 : -1;
+        else
+            return rank == card2.rank ? 0 : rank > card2.rank ? 1 : -1;
     }
 }

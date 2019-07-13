@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class ConsolePlayerAdapter extends AbstractPlayerAdapter {
@@ -37,7 +38,7 @@ public class ConsolePlayerAdapter extends AbstractPlayerAdapter {
         List<Card> kitty = new ArrayList<>(context.getHand().getKitty());
         List<Card> cards = new ArrayList<>(context.getCards(this));
         cards.addAll(kitty);
-        cards.sort(DeckFactory.getCardComparator());
+        Collections.sort(cards);
 
         System.out.println("Select a card to place back into the kitty  (ie: 1,3,5,7,9): ");
         for(int i=0, length=cards.size(); i<length; i++){

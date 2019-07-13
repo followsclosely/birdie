@@ -4,6 +4,7 @@ import org.mlw.birdie.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class RookEngine {
@@ -55,12 +56,12 @@ public class RookEngine {
             }
         }
 
-        dealerPiles[this.players.length].sort(DeckFactory.getCardComparator());
+        Collections.sort(dealerPiles[context.getNumberOfPlayers()]);
         hand.getKitty().addAll(dealerPiles[context.getNumberOfPlayers()]);
         System.out.println("    Cat: " + dealerPiles[context.getNumberOfPlayers()]);
 
         for(i=0; i<this.players.length; i++){
-            dealerPiles[i].sort(DeckFactory.getCardComparator());
+            Collections.sort(dealerPiles[i]);
             System.out.println("    " + players[i].getName() + ": " + dealerPiles[i]);
             context.getCards(players[i]).clear();
             context.getCards(players[i]).addAll(dealerPiles[i]);
