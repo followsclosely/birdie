@@ -10,5 +10,11 @@ public class Bid {
     }
 
     public Integer getValue() { return value; }
+    public void setValue(Integer value) {this.value = value;}
     public int getSeat() { return seat; }
+
+    @Override
+    public String toString() {
+        return "Bid{seat=" + seat + ", value=" + value + '}';
+    }
 }

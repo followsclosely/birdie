@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Hand {
+
+    private static final int STARTING_BID = 75;
+
     private int seats;
     private int dealerIndex = 0;
     private List<List<Card>> cards;
@@ -29,8 +32,11 @@ public class Hand {
     }
 
     public List<Bid> getBids() { return bids; }
+    public Bid getLastBid(){
+        return bids.size() > 0 ? bids.get(bids.size()-1) : new Bid((dealerIndex),STARTING_BID);
+    }
     public Bid getMaxBid() {
-        Bid max = new Bid(0,0);
+        Bid max = new Bid((dealerIndex),STARTING_BID);
         for (Bid bid : bids) {
             if (bid.getValue() != null && bid.getValue() > max.getValue()) {
                 max = bid;
@@ -84,4 +90,6 @@ public class Hand {
 
         return scores;
     }
+
+    public int getSeats() { return seats; }
 }

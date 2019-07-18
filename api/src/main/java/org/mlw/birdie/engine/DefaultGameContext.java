@@ -1,8 +1,8 @@
 package org.mlw.birdie.engine;
 
-import org.mlw.birdie.*;
+import org.mlw.birdie.GameContext;
+import org.mlw.birdie.Hand;
 
-import java.util.List;
 
 public class DefaultGameContext implements GameContext {
 
@@ -15,16 +15,13 @@ public class DefaultGameContext implements GameContext {
         this.numberOfPlayers = numberOfPlayers;
     }
 
-    @Override
-    public List<Card> getCards(PlayerAdapter player) {
-        return hand.getCards(player);
-    }
-
     public Hand newHand() {
-        return (this.hand = new Hand(4, dealerIndex++));
+        return (this.hand = new Hand(4, dealerIndex));
     }
 
     public Hand getHand() { return hand; }
 
     public int getNumberOfPlayers() { return numberOfPlayers; }
+
+    public int getDealerIndex() { return dealerIndex; }
 }

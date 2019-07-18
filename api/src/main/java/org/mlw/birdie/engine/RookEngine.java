@@ -1,19 +1,32 @@
 package org.mlw.birdie.engine;
 
+import com.google.common.eventbus.AsyncEventBus;
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import org.mlw.birdie.*;
+import org.mlw.birdie.engine.event.*;
+import org.mlw.birdie.engine.handler.BidEventHandler;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Executors;
 
 public class RookEngine {
+
     private final Deck deck;
     private final PlayerAdapter[] players;
+    private DefaultGameContext context;
+
+    private EventBus serverBus = new AsyncEventBus(Executors.newSingleThreadExecutor());
+    private EventBus clientBus = new AsyncEventBus(Executors.newSingleThreadExecutor());
+
+    private BidEventHandler bidEventHandler = null;
 
     public RookEngine(Deck deck, int numberOfPlayers) {
         this.deck = deck;
         this.players = new PlayerAdapter[numberOfPlayers];
+        this.serverBus.register(this);
     }
 
     public void addPlayer(PlayerAdapter player){
@@ -21,6 +34,7 @@ public class RookEngine {
             if( players[i] == null){
                 System.out.println("Adding player: " + player.getName());
                 players[i] = player;
+                clientBus.register(player);
                 return;
             }
         }
@@ -28,10 +42,12 @@ public class RookEngine {
 
     public DefaultGameContext createGame(){
         System.out.println("Starting Game...");
-        return new DefaultGameContext(players.length);
+        this.context = new DefaultGameContext(players.length);
+        this.clientBus.post(new GameStartedEvent(this, this.context));
+        return this.context;
     }
 
-    public void processDeal(DefaultGameContext context) {
+    public void startGame() {
         System.out.println("Starting Hand...");
 
         Hand hand = context.newHand();
@@ -63,51 +79,19 @@ public class RookEngine {
         for(i=0; i<this.players.length; i++){
             Collections.sort(dealerPiles[i]);
             System.out.println("    " + players[i].getName() + ": " + dealerPiles[i]);
-            context.getCards(players[i]).clear();
-            context.getCards(players[i]).addAll(dealerPiles[i]);
+            context.getHand().getCards(players[i]).clear();
+            context.getHand().getCards(players[i]).addAll(dealerPiles[i]);
         }
 
-        for(PlayerAdapter player : players){
-            player.handleDeal(context);
-        }
+        this.bidEventHandler = new BidEventHandler(clientBus, context);
+        clientBus.post(new HandDealtEvent(hand));
+        clientBus.post(new BidRequestEvent(this, context.getHand(), (context.getDealerIndex()+1)%context.getNumberOfPlayers()));
     }
 
-    public void processBidding(DefaultGameContext context) {
-        Hand hand = context.getHand();
 
-        int bidderIndex = (hand.getDealerIndex()+1)%context.getNumberOfPlayers();
-
-        Bid previousBid = null;
-        List<PlayerAdapter> bidders = new ArrayList(Arrays.asList(players));
-        while (bidders.size() > 1) {
-            PlayerAdapter player = bidders.get(bidderIndex);
-            Bid bid = player.handleBid(context);
-
-            //If the bid is not higher than the last then do nothing.
-            if( previousBid == null || bid.getValue() == null || bid.getValue() > previousBid.getValue() ){
-
-                //If the bid is null then remove the bidder from rest of the bidding process.
-                if( bid.getValue() == null){
-                    bidders.remove(player);
-                }
-                else {
-                    hand.getBids().add(previousBid = bid);
-                    bidderIndex++;
-                }
-
-                if (bidderIndex >= bidders.size()){
-                    bidderIndex = 0;
-                }
-            }
-        }
-
-        for(Bid bid : context.getHand().getBids())
-        {
-            System.out.println(String.format(" -- Player %s  bid %d", players[bid.getSeat()].getName(), bid.getValue()));
-        }
-
-        Bid bid = context.getHand().getMaxBid();
-        System.out.println(String.format("  Player %s won the bid for %d", players[bid.getSeat()].getName(), bid.getValue()));
+    @Subscribe
+    public void onBidEvent(BidEvent event){
+        this.bidEventHandler.onBidEvent(event);
     }
 
     public void processKitty(DefaultGameContext context) {
@@ -122,7 +106,7 @@ public class RookEngine {
 
         int leader = hand.getMaxBid().getSeat();
 
-        while (context.getCards(players[leader]).size()>0) {
+        while (context.getHand().getCards(players[leader]).size()>0) {
             Trick trick = hand.createTrick(leader);
             for (int i = 0; i < context.getNumberOfPlayers(); i++) {
                 PlayerAdapter player = players[(i + leader) % context.getNumberOfPlayers()];
@@ -130,9 +114,14 @@ public class RookEngine {
                 Card card = player.handleTurn(context);
 
                 //todo: this does not feel right...
-                context.getCards(player).remove(card);
+                context.getHand().getCards(player).remove(card);
 
                 trick.getCards().add(card);
+
+
+                clientBus.post(new CardPlayedEvent(hand));
+
+
                 System.out.println(player.getName() + " played " + card);
             }
 
@@ -183,4 +172,10 @@ public class RookEngine {
 
         System.out.println("Total:    " + total + " points.");
     }
+
+    public EventBus getEventBus() {
+        return serverBus;
+    }
+
+
 }

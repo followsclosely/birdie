@@ -1,44 +1,21 @@
 package org.mlw.birdie.engine.ai.basic;
 
 
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import org.mlw.birdie.Bid;
 import org.mlw.birdie.Card;
 import org.mlw.birdie.GameContext;
 import org.mlw.birdie.Trick;
 import org.mlw.birdie.engine.AbstractPlayerAdapter;
+import org.mlw.birdie.engine.event.BidEvent;
+import org.mlw.birdie.engine.event.BidRequestEvent;
+import org.mlw.birdie.engine.event.CardPlayedEvent;
 
-import java.util.List;
-import java.util.Optional;
 
 public class BasicPlayerAdapter extends AbstractPlayerAdapter {
-    public BasicPlayerAdapter(String name, int seat){
-        this.name = name;
-        this.seat = seat;
-    }
-
-//        int countMax = 0;
-//        Card.Suit maxSuit = Card.Suit.Black;
-//        for(Card.Suit suit: Card.Suit.values()) {
-//            int countSuit = (int) this.cards.stream().filter(card -> card.getSuit() == suit).count();
-//            if( countSuit > countMax)
-//            {
-//                countMax = (int)countSuit;
-//                maxSuit = suit;
-//            }
-//        }
-//        return maxSuit;
-
-    @Override
-    public Bid handleBid(GameContext context) {
-        int maxBid = context.getHand().getMaxBid().getValue();
-
-        if( (maxBid < 120 ) ){
-            System.out.println(String.format("  Player %s bid %d", name, maxBid+5));
-            return new Bid(seat,maxBid + 5);
-        } else {
-            System.out.println(String.format("  Player %s passed", name));
-            return new Bid(seat,null);
-        }
+    public BasicPlayerAdapter(EventBus server, String name, int seat){
+        super(server, name, seat);
     }
 
     @Override
@@ -63,5 +40,26 @@ public class BasicPlayerAdapter extends AbstractPlayerAdapter {
         }
 
         return cards.remove(0);
+    }
+
+    public BasicPlayerAdapter(EventBus server) {
+        super(server);
+    }
+
+    public void onMyBidRequestEvent(BidRequestEvent event) {
+        int maxBid = event.getHand().getMaxBid().getValue();
+
+        if ((maxBid < 120)) {
+            System.out.println(String.format("  Player %s bid %d", name, maxBid + 5));
+            post(new BidEvent(this, new Bid(seat, maxBid + 5)));
+        } else {
+            System.out.println(String.format("  Player %s passed", name));
+            post(new BidEvent(this, new Bid(seat, null)));
+        }
+
+    }
+
+    @Subscribe
+    public void onCardPlayedEvent(CardPlayedEvent event) {
     }
 }
