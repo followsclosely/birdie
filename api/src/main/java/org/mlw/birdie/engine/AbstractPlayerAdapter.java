@@ -16,12 +16,8 @@ public abstract class AbstractPlayerAdapter implements PlayerAdapter {
     protected int seat;
     protected List<Card> cards;
 
-    public AbstractPlayerAdapter(EventBus server) {
-        this.server = server;
-    }
-
     public AbstractPlayerAdapter(EventBus server, String name, int seat) {
-        this(server);
+        this.server = server;
         this.name = name;
         this.seat = seat;
     }
@@ -30,27 +26,13 @@ public abstract class AbstractPlayerAdapter implements PlayerAdapter {
         server.post(object);
     }
 
-    @Override
-    public String getName() { return name; }
-
-    @Override
-    public int getSeat() {
-        return seat;
-    }
-
     @Subscribe
     public void onHandDealtEvent(HandDealtEvent event) {
         this.cards = event.getHand().getCards(this);
     }
 
-    @Subscribe
-    public void onBidRequestEvent(BidRequestEvent event) {
-        //System.out.println("Seat=" + event.getSeat());
-        if (event.getSeat()!=null && event.getSeat() == seat){
-            onMyBidRequestEvent(event);
-        } else {
-            //System.out.println( this.name + ": Not my turn!");
-        }
+    public String getName() { return name; }
+    public int getSeat() {
+        return seat;
     }
-    public abstract void onMyBidRequestEvent(BidRequestEvent event);
 }

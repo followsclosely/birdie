@@ -3,6 +3,7 @@ package org.mlw.birdie.console;
 import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
 import org.mlw.birdie.DeckFactory;
+import org.mlw.birdie.engine.ClientEventBroker;
 import org.mlw.birdie.engine.DefaultGameContext;
 import org.mlw.birdie.engine.RookEngine;
 import org.mlw.birdie.engine.ai.basic.BasicPlayerAdapter;
@@ -14,11 +15,14 @@ public class Main {
     public static void main(String[] args) throws IOException, InterruptedException {
 
         int numberOfPlayers = 4;
-        RookEngine engine = new RookEngine(DeckFactory.getStandardDeck(), numberOfPlayers);
-        engine.addPlayer(new ConsolePlayerAdapter(engine.getEventBus()));
-        for(int i=1; i<numberOfPlayers; i++) engine.addPlayer(new BasicPlayerAdapter(engine.getEventBus(), String.format("Player %d", i), i));
 
-        engine.createGame();
+        RookEngine engine = new RookEngine(DeckFactory.getStandardDeck(), new ClientEventBroker(4));
+        EventBus serverBus = new AsyncEventBus(Executors.newSingleThreadExecutor());
+        serverBus.register(engine);
+
+        engine.addPlayer(new ConsolePlayerAdapter(serverBus));
+        for(int i=1; i<numberOfPlayers; i++) engine.addPlayer(new BasicPlayerAdapter(serverBus, String.format("Player %d", i), i));
+
         engine.startGame();
 
         Thread.currentThread().join();

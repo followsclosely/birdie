@@ -8,9 +8,7 @@ import org.mlw.birdie.Card;
 import org.mlw.birdie.GameContext;
 import org.mlw.birdie.Trick;
 import org.mlw.birdie.engine.AbstractPlayerAdapter;
-import org.mlw.birdie.engine.event.BidEvent;
-import org.mlw.birdie.engine.event.BidRequestEvent;
-import org.mlw.birdie.engine.event.CardPlayedEvent;
+import org.mlw.birdie.engine.event.*;
 
 
 public class BasicPlayerAdapter extends AbstractPlayerAdapter {
@@ -18,12 +16,6 @@ public class BasicPlayerAdapter extends AbstractPlayerAdapter {
         super(server, name, seat);
     }
 
-    @Override
-    public void handleKitty(GameContext context) {
-        context.getHand().setTrump(Card.Suit.Black);
-    }
-
-    @Override
     public Card handleTurn(GameContext context){
         Trick trick = context.getHand().getTrick();
 
@@ -42,11 +34,8 @@ public class BasicPlayerAdapter extends AbstractPlayerAdapter {
         return cards.remove(0);
     }
 
-    public BasicPlayerAdapter(EventBus server) {
-        super(server);
-    }
-
-    public void onMyBidRequestEvent(BidRequestEvent event) {
+    @Subscribe
+    public void onBidRequestEvent(BidRequestEvent event) {
         int maxBid = event.getHand().getMaxBid().getValue();
 
         if ((maxBid < 120)) {
@@ -56,10 +45,11 @@ public class BasicPlayerAdapter extends AbstractPlayerAdapter {
             System.out.println(String.format("  Player %s passed", name));
             post(new BidEvent(this, new Bid(seat, null)));
         }
-
     }
 
     @Subscribe
-    public void onCardPlayedEvent(CardPlayedEvent event) {
+    public void onBidWonEvent(BidWonEvent event) {
+        event.getHand().setTrump(Card.Suit.Black);
+        super.post(new TrumpSelectedEvent(this, event.getHand().getKitty(), Card.Suit.Black, seat));
     }
 }

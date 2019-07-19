@@ -1,11 +1,12 @@
 package org.mlw.birdie.engine.handler;
 
-import com.google.common.eventbus.EventBus;
 import org.mlw.birdie.Bid;
 import org.mlw.birdie.GameContext;
 import org.mlw.birdie.Hand;
+import org.mlw.birdie.engine.ClientEventBroker;
 import org.mlw.birdie.engine.event.BidEvent;
 import org.mlw.birdie.engine.event.BidRequestEvent;
+import org.mlw.birdie.engine.event.BidWonEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,15 +15,15 @@ import java.util.List;
 public class BidEventHandler {
 
     private GameContext context = null;
-    private EventBus eventBus = null;
+    private ClientEventBroker clients = null;
 
     private int bidderIndex;
     private int biddersLeft;
     private Bid previousBid = null;
     private List<Bid> lastBid = null;
 
-    public BidEventHandler(EventBus eventBus, GameContext context) {
-        this.eventBus = eventBus;
+    public BidEventHandler(ClientEventBroker clients, GameContext context) {
+        this.clients = clients;
         this.context = context;
         this.biddersLeft = context.getNumberOfPlayers();
         this.bidderIndex = (context.getHand().getDealerIndex()+1)%context.getNumberOfPlayers();
@@ -63,11 +64,11 @@ public class BidEventHandler {
 
             if (this.biddersLeft == 1) {
                 System.out.println("Player " + hand.getMaxBid().getSeat() + " won the bid!");
-                //eventBus.post(new );
+                clients.post(new BidWonEvent(this, hand, hand.getMaxBid().getSeat()), hand.getMaxBid().getSeat());
                 return;
             }
 
-            eventBus.post(new BidRequestEvent(this, hand, this.bidderIndex));
+            clients.post(new BidRequestEvent(this, hand, this.bidderIndex), this.bidderIndex);
         }
     }
 }
