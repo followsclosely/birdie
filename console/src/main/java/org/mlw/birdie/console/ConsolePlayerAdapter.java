@@ -2,7 +2,10 @@ package org.mlw.birdie.console;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import org.mlw.birdie.*;
+import org.mlw.birdie.Bid;
+import org.mlw.birdie.Card;
+import org.mlw.birdie.Hand;
+import org.mlw.birdie.Trick;
 import org.mlw.birdie.engine.AbstractPlayerAdapter;
 import org.mlw.birdie.engine.event.*;
 
@@ -23,21 +26,6 @@ public class ConsolePlayerAdapter extends AbstractPlayerAdapter {
         if( this.name == null || this.name.trim().length() == 0){
             this.name = "Player 0";
         }
-    }
-
-
-
-    public Card handleTurn(GameContext context) {
-        Trick trick = context.getHand().getTrick();
-        System.out.println("Cards played: " + trick.getCards());
-
-        for(int i=0, length=cards.size(); i<length; i++){
-            System.out.print("  "+ String.format("%02d", i) + "  ");
-        }
-        System.out.println("\n" + cards);
-
-        System.out.println("Select a Card: ");
-        return cards.get(Integer.parseInt(readLine()));
     }
 
     private BufferedReader reader = null;
@@ -112,6 +100,21 @@ public class ConsolePlayerAdapter extends AbstractPlayerAdapter {
         hand.getCards(this).addAll(cards);
 
         super.post(new TrumpSelectedEvent(this, hand.getKitty(), hand.getTrump(), seat));
+    }
+
+    @Subscribe
+    public void onTurnEvent(TurnEvent event){
+        Trick trick = event.getTrick();
+        System.out.println("Cards played: " + trick.getCards());
+
+        for(int i=0, length=cards.size(); i<length; i++){
+            System.out.print("  "+ String.format("%02d", i) + "  ");
+        }
+        System.out.println("\n" + cards);
+
+        System.out.println("Select a Card: ");
+        Card card = cards.get(Integer.parseInt(readLine()));
+        post(new CardPlayedEvent(this, card, this.seat));
     }
 
     @Subscribe

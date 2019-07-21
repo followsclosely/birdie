@@ -5,10 +5,10 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import org.mlw.birdie.Bid;
 import org.mlw.birdie.Card;
-import org.mlw.birdie.GameContext;
 import org.mlw.birdie.Trick;
 import org.mlw.birdie.engine.AbstractPlayerAdapter;
 import org.mlw.birdie.engine.event.*;
+
 
 
 public class BasicPlayerAdapter extends AbstractPlayerAdapter {
@@ -16,22 +16,24 @@ public class BasicPlayerAdapter extends AbstractPlayerAdapter {
         super(server, name, seat);
     }
 
-    public Card handleTurn(GameContext context){
-        Trick trick = context.getHand().getTrick();
+    @Subscribe
+    public void onTurnEvent(TurnEvent event){
+        Trick trick = event.getTrick();
 
         //If you are the leader, play the last card in your hand.
         if( trick.getCards().size()==0 ){
-            return cards.remove(cards.size()-1);
+            post(new CardPlayedEvent(this, cards.get(cards.size()-1), this.seat));
         }
 
-        Card lead = trick.getCards().get(0);
-        Card card = cards.stream().filter(c -> c.getSuit().equals(lead.getSuit())).findAny().orElse(null);
-        if( card != null ){
-            cards.remove(card);
-            return card;
+        else {
+            Card lead = trick.getCards().get(0);
+            Card card = cards.stream().filter(c -> c.getSuit().equals(lead.getSuit())).findAny().orElse(null);
+            if (card != null) {
+                post(new CardPlayedEvent(this, card, this.seat));
+            } else {
+                post(new CardPlayedEvent(this, cards.get(cards.size() - 1), this.seat));
+            }
         }
-
-        return cards.remove(0);
     }
 
     @Subscribe
@@ -39,10 +41,8 @@ public class BasicPlayerAdapter extends AbstractPlayerAdapter {
         int maxBid = event.getHand().getMaxBid().getValue();
 
         if ((maxBid < 120)) {
-            System.out.println(String.format("  Player %s bid %d", name, maxBid + 5));
             post(new BidEvent(this, new Bid(seat, maxBid + 5)));
         } else {
-            System.out.println(String.format("  Player %s passed", name));
             post(new BidEvent(this, new Bid(seat, null)));
         }
     }

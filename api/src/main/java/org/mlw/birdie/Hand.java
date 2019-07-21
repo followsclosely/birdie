@@ -30,6 +30,9 @@ public class Hand {
     public List<Card> getCards(PlayerAdapter player){
         return cards.get(player.getSeat());
     }
+    public List<Card> getCards(int seat){
+        return cards.get(seat);
+    }
 
     public List<Bid> getBids() { return bids; }
     public Bid getLastBid(){
@@ -69,7 +72,7 @@ public class Hand {
     public List<Trick> getTricks() { return tricks; }
     public Trick getTrick(){ return tricks.get(tricks.size()-1); }
     public Trick createTrick(int leader){
-        Trick trick = new Trick(leader);
+        Trick trick = new Trick(seats, leader);
         tricks.add(trick);
         return trick;
     }

@@ -30,6 +30,5 @@ public class CardTest {
         Collections.sort(cards);
 
         Assert.assertEquals(0, cards.get(0).getNumber());
-
     }
 }

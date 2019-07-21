@@ -3,16 +3,22 @@ package org.mlw.birdie.engine.handler;
 import org.mlw.birdie.Bid;
 import org.mlw.birdie.GameContext;
 import org.mlw.birdie.Hand;
+import org.mlw.birdie.Trick;
 import org.mlw.birdie.engine.ClientEventBroker;
 import org.mlw.birdie.engine.event.BidEvent;
 import org.mlw.birdie.engine.event.BidRequestEvent;
 import org.mlw.birdie.engine.event.BidWonEvent;
+import org.mlw.birdie.engine.event.TurnEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
 
 public class BidEventHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(BidEventHandler.class);
 
     private GameContext context = null;
     private ClientEventBroker clients = null;
@@ -39,7 +45,7 @@ public class BidEventHandler {
 
         //Is the correct person bidding?
         if (bidderIndex != bid.getSeat()) {
-            System.out.println(String.format(" %d, it is not your turn!", bid.getSeat()));
+            log.info(String.format(" %d, it is not your turn!", bid.getSeat()));
             return;
         }
 
@@ -50,6 +56,7 @@ public class BidEventHandler {
                 biddersLeft--;
             }
 
+            log.info(String.format("  Player%d bid %d", bid.getSeat(), bid.getValue()));
             lastBid.get(bid.getSeat()).setValue(bid.getValue());
             context.getHand().getBids().add(bid);
 
@@ -63,8 +70,12 @@ public class BidEventHandler {
             }
 
             if (this.biddersLeft == 1) {
-                System.out.println("Player " + hand.getMaxBid().getSeat() + " won the bid!");
-                clients.post(new BidWonEvent(this, hand, hand.getMaxBid().getSeat()), hand.getMaxBid().getSeat());
+                Bid winner = hand.getMaxBid();
+                log.info(String.format("  Player%d won the bid for %d points!", winner.getSeat(), winner.getValue()));
+                clients.post(new BidWonEvent(this, hand, winner.getSeat()), winner.getSeat());
+
+                Trick trick = hand.createTrick(winner.getSeat());
+                clients.post(new TurnEvent(this, trick, winner.getSeat()), winner.getSeat());
                 return;
             }
 

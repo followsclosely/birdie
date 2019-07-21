@@ -4,7 +4,6 @@ import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
 import org.mlw.birdie.DeckFactory;
 import org.mlw.birdie.engine.ClientEventBroker;
-import org.mlw.birdie.engine.DefaultGameContext;
 import org.mlw.birdie.engine.RookEngine;
 import org.mlw.birdie.engine.ai.basic.BasicPlayerAdapter;
 
@@ -12,6 +11,7 @@ import java.io.IOException;
 import java.util.concurrent.Executors;
 
 public class Main {
+
     public static void main(String[] args) throws IOException, InterruptedException {
 
         int numberOfPlayers = 4;
@@ -26,8 +26,6 @@ public class Main {
         engine.startGame();
 
         Thread.currentThread().join();
-
-        System.out.println("BUMMER!");
 
 //        for (int i=0; i<5; i++) {
 //            engine.processDeal(context);

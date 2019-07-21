@@ -4,6 +4,7 @@ import com.google.common.eventbus.EventBus;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mlw.birdie.Bid;
+import org.mlw.birdie.engine.ClientEventBroker;
 import org.mlw.birdie.engine.DefaultGameContext;
 import org.mlw.birdie.engine.event.BidEvent;
 
@@ -14,9 +15,10 @@ public class BidEventHandlerTest {
     @Test
     public void testSimple() {
         DefaultGameContext context = new DefaultGameContext(4);
+        ClientEventBroker clients = new ClientEventBroker(context.getNumberOfPlayers());
         context.newHand();
 
-        BidEventHandler handler = new BidEventHandler(eventBus, context);
+        BidEventHandler handler = new BidEventHandler(clients, context);
 
         handler.onBidEvent(new BidEvent(null, new Bid(1, 85)));
         handler.onBidEvent(new BidEvent(null, new Bid(2, null)));
@@ -33,9 +35,10 @@ public class BidEventHandlerTest {
     @Test
     public void testOutOfOrderBid() {
         DefaultGameContext context = new DefaultGameContext(4);
+        ClientEventBroker clients = new ClientEventBroker(context.getNumberOfPlayers());
         context.newHand();
 
-        BidEventHandler handler = new BidEventHandler(eventBus, context);
+        BidEventHandler handler = new BidEventHandler(clients, context);
 
         handler.onBidEvent(new BidEvent(null, new Bid(1, 80)));
         handler.onBidEvent(new BidEvent(null, new Bid(2, 150)));
@@ -49,9 +52,10 @@ public class BidEventHandlerTest {
     @Test
     public void testTooLowBid() {
         DefaultGameContext context = new DefaultGameContext(4);
+        ClientEventBroker clients = new ClientEventBroker(context.getNumberOfPlayers());
         context.newHand();
 
-        BidEventHandler handler = new BidEventHandler(eventBus, context);
+        BidEventHandler handler = new BidEventHandler(clients, context);
 
         handler.onBidEvent(new BidEvent(null, new Bid(1, 90)));
         handler.onBidEvent(new BidEvent(null, new Bid(2, 115)));

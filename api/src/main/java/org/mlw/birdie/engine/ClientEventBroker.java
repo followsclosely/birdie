@@ -2,9 +2,13 @@ package org.mlw.birdie.engine;
 
 import com.google.common.eventbus.EventBus;
 import org.mlw.birdie.PlayerAdapter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class ClientEventBroker {
+
+    private static final Logger log = LoggerFactory.getLogger(ClientEventBroker.class);
 
     private int numberOfSeats;
     private EventBus[] clients = null;
@@ -20,15 +24,16 @@ public class ClientEventBroker {
         }
     }
 
-    public void addPlayer(PlayerAdapter player){
+    public PlayerAdapter addPlayer(PlayerAdapter player){
         for(int i=0, length=players.length; i<length; i++){
             if( players[i] == null){
-                System.out.println("Adding player: " + player.getName());
+                log.info("Adding player: " + player.getName());
                 players[i] = player;
                 clients[i].register(player);
-                return;
+                break;
             }
         }
+        return player;
     }
 
     public void post(Object event){

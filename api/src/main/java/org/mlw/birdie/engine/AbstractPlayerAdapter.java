@@ -4,7 +4,6 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import org.mlw.birdie.Card;
 import org.mlw.birdie.PlayerAdapter;
-import org.mlw.birdie.engine.event.BidRequestEvent;
 import org.mlw.birdie.engine.event.HandDealtEvent;
 
 import java.util.List;
@@ -16,8 +15,11 @@ public abstract class AbstractPlayerAdapter implements PlayerAdapter {
     protected int seat;
     protected List<Card> cards;
 
-    public AbstractPlayerAdapter(EventBus server, String name, int seat) {
+    public AbstractPlayerAdapter(EventBus server) {
         this.server = server;
+    }
+    public AbstractPlayerAdapter(EventBus server, String name, int seat) {
+        this(server);
         this.name = name;
         this.seat = seat;
     }
