@@ -69,18 +69,18 @@ public class CardPlayedEventHandler {
             if (trick.getLeader() == trick.getSeat()) {
 
                 //calculate winner
-                determineWinnerOfTrick(hand);
+                int seat = determineWinnerOfTrick(hand);
                 clients.post(new TrickWonEvent(this, trick));
 
                 //If this is the end of the hand, then do end of hand processing.
-                trick = hand.createTrick(trick.getWinner());
+                trick = hand.createTrick(seat);
             }
 
             clients.post(new TurnEvent(this, trick, trick.getSeat()), trick.getSeat());
         }
     }
 
-    private void determineWinnerOfTrick(Hand hand){
+    private int determineWinnerOfTrick(Hand hand){
         Trick trick = hand.getTrick();
         Card lead = trick.getCards().get(0);
         int leader = trick.getSeat();
@@ -105,5 +105,6 @@ public class CardPlayedEventHandler {
         leader = (leader + winner) % context.getNumberOfPlayers();
 
         log.info(trick.getCards() + " Player" + leader + " won the trick with a " + trick.getCards().get(winner));
+        return leader;
     }
 }

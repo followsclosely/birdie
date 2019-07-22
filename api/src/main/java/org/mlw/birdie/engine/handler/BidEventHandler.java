@@ -59,6 +59,8 @@ public class BidEventHandler {
             log.info(String.format("  Player%d bid %d", bid.getSeat(), bid.getValue()));
             lastBid.get(bid.getSeat()).setValue(bid.getValue());
             context.getHand().getBids().add(bid);
+            //Forward this event to the clients for consumption...
+            clients.post(event);
 
             //Calculate who is bidding next.
             for (int i = 1; i < context.getNumberOfPlayers(); i++) {

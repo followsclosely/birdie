@@ -14,6 +14,10 @@ public class Main {
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
+        //System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tF %1$tT %4$s %2$s %5$s%6$s%n");
+        System.setProperty("java.util.logging.SimpleFormatter.format", "[%1$tF %1$tT] [%4$-7s] %5$s %n");
+        System.setProperty("java.util.logging.ConsoleHandler.level", "DEBUG");
+
         int numberOfPlayers = 4;
 
         RookEngine engine = new RookEngine(DeckFactory.getStandardDeck(), new ClientEventBroker(4));
@@ -26,12 +30,5 @@ public class Main {
         engine.startGame();
 
         Thread.currentThread().join();
-
-//        for (int i=0; i<5; i++) {
-//            engine.processDeal(context);
-//            engine.processBidding(context);
-//            //engine.processKitty(context);
-//            //engine.processHand(context);
-//        }
     }
 }

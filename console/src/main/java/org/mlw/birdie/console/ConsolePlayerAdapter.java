@@ -39,17 +39,38 @@ public class ConsolePlayerAdapter extends AbstractPlayerAdapter {
             return readLine();
         }
     }
+    private synchronized int readInteger() {
+        try {
+            String line = readLine();
+            return ( line != null && line.trim().length() > 0) ? Integer.parseInt(line) : null;
+        } catch (Exception ignore){
+            System.out.println(ignore.getMessage());
+            return readInteger();
+        }
+    }
+
+
+    @Subscribe
+    public void onHandDealtEvent(HandDealtEvent event) {
+        this.cards = event.getHand().getCards(this);
+        System.out.println(cards);
+    }
 
     @Subscribe
     public void onBidRequestEvent(BidRequestEvent event) {
 
         int maxBid = event.getHand().getMaxBid().getValue();
 
-        System.out.println("Enter bid greater than or equal to " + (maxBid+5) + " (leave blank to pass): ");
-        String line = readLine();
-        Integer bid = ( line != null && line.trim().length() > 0) ? Integer.parseInt(line) : null;
+        System.out.println("  Enter bid greater than or equal to " + (maxBid+5) + " (leave blank to pass): ");
+        //String line = readLine();
+        //Integer bid = ( line != null && line.trim().length() > 0) ? Integer.parseInt(line) : null;
+        Integer bid = readInteger();
 
         post(new BidEvent(this, new Bid(seat, bid)));
+    }
+    @Subscribe
+    public void onBidEvent(BidEvent event) {
+        System.out.println(String.format("  Player%d bid %d", event.getBid().getSeat(), event.getBid().getValue()));
     }
 
     @Subscribe
