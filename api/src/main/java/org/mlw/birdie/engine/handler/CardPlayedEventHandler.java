@@ -1,11 +1,10 @@
 package org.mlw.birdie.engine.handler;
 
-import org.mlw.birdie.Card;
-import org.mlw.birdie.GameContext;
-import org.mlw.birdie.Hand;
-import org.mlw.birdie.Trick;
+import org.mlw.birdie.*;
 import org.mlw.birdie.engine.ClientEventBroker;
+import org.mlw.birdie.engine.DefaultGameContext;
 import org.mlw.birdie.engine.event.CardPlayedEvent;
+import org.mlw.birdie.engine.event.DealRequestEvent;
 import org.mlw.birdie.engine.event.TrickWonEvent;
 import org.mlw.birdie.engine.event.TurnEvent;
 import org.slf4j.Logger;
@@ -15,10 +14,10 @@ public class CardPlayedEventHandler {
 
     private static final Logger log = LoggerFactory.getLogger(CardPlayedEventHandler.class);
 
-    private final GameContext context;
+    private final DefaultGameContext context;
     private final ClientEventBroker clients;
 
-    public CardPlayedEventHandler(ClientEventBroker clients, GameContext context) {
+    public CardPlayedEventHandler(ClientEventBroker clients, DefaultGameContext context) {
         this.context = context;
         this.clients = clients;
     }
@@ -77,6 +76,12 @@ public class CardPlayedEventHandler {
                     trick = hand.createTrick(seat);
                 } else {
                     determineWinnerOfHand(hand);
+
+                    //Start a new hand...
+                    Hand nextHand = context.newHand();
+                    trick = nextHand.createTrick((hand.getNextDealerIndex()));
+
+                    clients.getServer().post(new DealRequestEvent());
                 }
             }
 
@@ -112,7 +117,8 @@ public class CardPlayedEventHandler {
         return leader;
     }
 
-    protected int determineWinnerOfHand(Hand hand){
+    protected boolean determineWinnerOfHand(Hand hand){
+
         //Print a summary of all the tricks.
         for(Trick trick : hand.getTricks()) {
             StringBuilder sb = new StringBuilder();
@@ -136,6 +142,22 @@ public class CardPlayedEventHandler {
         }
 
         log.info("Total:    " + total + " points.");
-        return 0;
+
+        //Assume that this is a teams game of 4 players...
+        int[] teams = new int[scores.length];
+        for(int i=0, length=scores.length; i<length; i++){
+            teams[i] = scores[i%length] + scores[(i+2)%length];
+            log.info(i + " --> " + teams[i]);
+        }
+
+        Bid bid = hand.getMaxBid();
+        boolean bidMade = teams[bid.getSeat()] >= bid.getValue();
+        if( bidMade ) {
+            log.info("Player" + bid.getSeat() + " made the bid!");
+        } else {
+            log.info("Player" + bid.getSeat() + " FAILED to make the bid!");
+        }
+
+        return bidMade;
     }
 }

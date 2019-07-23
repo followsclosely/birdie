@@ -5,7 +5,7 @@ import java.util.List;
 
 public class Hand {
 
-    private static final int STARTING_BID = 75;
+    private static final int STARTING_BID = 0;
 
     private int seats;
     private int dealerIndex = 0;
@@ -26,6 +26,7 @@ public class Hand {
     }
 
     public int getDealerIndex() { return dealerIndex; }
+    public int getNextDealerIndex() { return (dealerIndex+1)%seats; }
 
     public List<Card> getCards(PlayerAdapter player){
         return cards.get(player.getSeat());
@@ -39,6 +40,7 @@ public class Hand {
         return bids.size() > 0 ? bids.get(bids.size()-1) : new Bid((dealerIndex),STARTING_BID);
     }
     public Bid getMaxBid() {
+        //todo: this may be more efficient to start from the bottom and find the first non-null bid...
         Bid max = new Bid((dealerIndex),STARTING_BID);
         for (Bid bid : bids) {
             if (bid.getValue() != null && bid.getValue() > max.getValue()) {

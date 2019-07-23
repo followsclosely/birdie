@@ -29,15 +29,20 @@ public class RookTestUtils {
             hand = new Hand(seats, dealerIndex);
         }
 
+        public HandBuilder bid(int seat, Integer value){
+            hand.getBids().add(new Bid(seat, value));
+            return this;
+        }
+
         public HandBuilder hand(int leader, int winner, String... cards){
             Trick trick = hand.createTrick(leader);
+            for(String c : cards) trick.getCards().add(getCard(c));
             trick.setWinner(winner);
-            for(String c : cards){
-                trick.getCards().add(getCard(c));
-            }
 
             return this;
         }
+
+
 
         public Hand build(){
             return hand;

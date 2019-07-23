@@ -10,8 +10,8 @@ import org.mlw.birdie.engine.event.CardPlayedEvent;
 import org.mlw.birdie.engine.event.TrickWonEvent;
 import org.mlw.birdie.engine.event.TurnEvent;
 
-import static org.junit.Assert.assertEquals;
-import static org.mlw.birdie.RookTestUtils.getCard;
+import static org.junit.Assert.*;
+import static org.mlw.birdie.RookTestUtils.*;
 
 public class CardPlayedEventHandlerTest {
 
@@ -143,15 +143,17 @@ public class CardPlayedEventHandlerTest {
 
         CardPlayedEventHandler handler = new CardPlayedEventHandler(clients, context);
 
-        Hand hand = new RookTestUtils.HandBuilder(4,0)
+        Hand hand = new RookTestUtils.HandBuilder(context.getNumberOfPlayers(),0)
+                .bid(0, 60)
                 .hand(0, 0,"R1","R13","R5","R7")
                 .hand(0, 0,"B1","B3","Y10","B2")
                 .hand(0, 1,"Y11","Y1","Y3","Y10")
                 .hand(1, 0,"Y14","Y4","Y5","Y7")
+                .hand(1, 1,"G4","G5","G11","G10")
                 .build();
 
-        int winner = handler.determineWinnerOfHand(hand);
+        boolean bidMade = handler.determineWinnerOfHand(hand);
 
-        assertEquals(0, winner);
+        assertTrue("Player0 Should have made her bid!", bidMade);
     }
 }

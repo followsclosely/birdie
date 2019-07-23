@@ -20,8 +20,8 @@ public class Main {
 
         int numberOfPlayers = 4;
 
-        RookEngine engine = new RookEngine(DeckFactory.getStandardDeck(), new ClientEventBroker(4));
         EventBus serverBus = new AsyncEventBus(Executors.newSingleThreadExecutor());
+        RookEngine engine = new RookEngine(DeckFactory.getStandardDeck(), new ClientEventBroker(serverBus,4));
         serverBus.register(engine);
 
         engine.addPlayer(new ConsolePlayerAdapter(serverBus));

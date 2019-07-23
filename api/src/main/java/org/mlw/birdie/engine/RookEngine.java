@@ -35,10 +35,12 @@ public class RookEngine {
     }
 
     public void startGame() {
-
         log.info("Starting Game...");
         this.clients.post(new GameStartedEvent(this, this.context));
+        this.clients.getServer().post(new DealRequestEvent());
+    }
 
+    public void startHand() {
         log.info("Starting Hand...");
 
         Hand hand = this.context.newHand();
@@ -89,19 +91,19 @@ public class RookEngine {
     public void onBidEvent(BidEvent event){
         this.bidEventHandler.onBidEvent(event);
     }
+
     @Subscribe
     public void onCardPlayedEvent(CardPlayedEvent event){ this.cardPlayedEventHandler.onCardPlayedEvent(event); }
-
-
 
     @Subscribe
     public void onTrumpSelectedEvent(TrumpSelectedEvent event){
         log.info("############################################################");
     }
 
-
-
-
+    @Subscribe
+    public void onDealRequestEvent(DealRequestEvent event){
+        startHand();
+    }
 
     public void xxx(DefaultGameContext context) {
         Hand hand = context.getHand();
@@ -126,6 +128,26 @@ public class RookEngine {
 
         }
 
+        //Print a summary of all the tricks.
+        for(Trick trick : hand.getTricks()) {
+            log.info(clients.getName(trick.getLeader()) + " ");
+            for(int i=0; i<context.getNumberOfPlayers(); i++){
+                int index = (i+trick.getLeader()) % context.getNumberOfPlayers();
+                char x = ( trick.getWinner() == index ? '*' : ' ');
+                log.info( "|" + x + trick.getCards().get(index) + x);
+            }
+            log.info("| " + clients.getName((trick.getLeader() + trick.getWinner()) % context.getNumberOfPlayers()));
+            log.info(" " + trick.getPoints() + " points");
+        }
 
+        int[] scores = hand.getScores();
+
+        int total=0;
+        for(int i=0; i<context.getNumberOfPlayers(); i++){
+            total+=scores[i];
+            log.info("Player" + i + ": " + scores[i] + " points.");
+        }
+
+        log.info("Total:    " + total + " points.");
     }
 }

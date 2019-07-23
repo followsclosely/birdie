@@ -11,10 +11,12 @@ public class ClientEventBroker {
     private static final Logger log = LoggerFactory.getLogger(ClientEventBroker.class);
 
     private int numberOfSeats;
+    private EventBus server = null;
     private EventBus[] clients = null;
     public PlayerAdapter[] players = null;
 
-    public ClientEventBroker(int numberOfSeats){
+    public ClientEventBroker(EventBus server, int numberOfSeats){
+        this.server = server;
         this.numberOfSeats = numberOfSeats;
         this.clients = new EventBus[numberOfSeats];
         this.players = new PlayerAdapter[numberOfSeats];
@@ -53,6 +55,8 @@ public class ClientEventBroker {
             post(event);
         }
     }
+
+    public EventBus getServer() { return server; }
 
     public int getNumberOfSeats() { return numberOfSeats; }
     public String getName(int seat) { return players[seat].getName(); }
