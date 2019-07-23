@@ -10,8 +10,9 @@ import org.mlw.birdie.engine.event.CardPlayedEvent;
 import org.mlw.birdie.engine.event.TrickWonEvent;
 import org.mlw.birdie.engine.event.TurnEvent;
 
-import static org.junit.Assert.*;
-import static org.mlw.birdie.RookTestUtils.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mlw.birdie.RookTestUtils.getCard;
 
 public class CardPlayedEventHandlerTest {
 
@@ -25,7 +26,7 @@ public class CardPlayedEventHandlerTest {
     public void testLeaderWinswWithHighCard() {
 
         DefaultGameContext context = new DefaultGameContext(4);
-        ClientEventBroker clients = new ClientEventBroker(context.getNumberOfPlayers());
+        ClientEventBroker clients = new ClientEventBroker(null, context.getNumberOfPlayers());
         context.newHand().setTrump(Card.Suit.Black);
 
         CardPlayedEventHandler handler = new CardPlayedEventHandler(clients, context);
@@ -44,7 +45,7 @@ public class CardPlayedEventHandlerTest {
     public void testPlayer1WinsWithHighCard() {
 
         DefaultGameContext context = new DefaultGameContext(4);
-        ClientEventBroker clients = new ClientEventBroker(context.getNumberOfPlayers());
+        ClientEventBroker clients = new ClientEventBroker(null, context.getNumberOfPlayers());
         context.newHand().setTrump(Card.Suit.Red);
 
         CardPlayedEventHandler handler = new CardPlayedEventHandler(clients, context);
@@ -63,7 +64,7 @@ public class CardPlayedEventHandlerTest {
     public void testPlayer2WinsWithHighTrumpCard() {
 
         DefaultGameContext context = new DefaultGameContext(4);
-        ClientEventBroker clients = new ClientEventBroker(context.getNumberOfPlayers());
+        ClientEventBroker clients = new ClientEventBroker(null, context.getNumberOfPlayers());
         MockPlayerAdapter[] players = new MockPlayerAdapter[context.getNumberOfPlayers()];
         for (int i=0; i<context.getNumberOfPlayers(); i++){
             players[i] = (MockPlayerAdapter)clients.addPlayer(new MockPlayerAdapter());
@@ -97,7 +98,7 @@ public class CardPlayedEventHandlerTest {
 
 
         DefaultGameContext context = new DefaultGameContext(4);
-        ClientEventBroker clients = new ClientEventBroker(context.getNumberOfPlayers());
+        ClientEventBroker clients = new ClientEventBroker(null, context.getNumberOfPlayers());
         context.newHand().setTrump(Card.Suit.Red);
 
         CardPlayedEventHandler handler = new CardPlayedEventHandler(clients, context);
@@ -116,7 +117,7 @@ public class CardPlayedEventHandlerTest {
     public void testDetermineWinnerOfTrick(){
 
         DefaultGameContext context = new DefaultGameContext(4);
-        ClientEventBroker clients = new ClientEventBroker(context.getNumberOfPlayers());
+        ClientEventBroker clients = new ClientEventBroker(null, context.getNumberOfPlayers());
         context.newHand().setTrump(Card.Suit.Red);
 
         CardPlayedEventHandler handler = new CardPlayedEventHandler(clients, context);
@@ -138,7 +139,7 @@ public class CardPlayedEventHandlerTest {
     public void testDetermineWinnerOfHand(){
 
         DefaultGameContext context = new DefaultGameContext(4);
-        ClientEventBroker clients = new ClientEventBroker(context.getNumberOfPlayers());
+        ClientEventBroker clients = new ClientEventBroker(null, context.getNumberOfPlayers());
         context.newHand().setTrump(Card.Suit.Red);
 
         CardPlayedEventHandler handler = new CardPlayedEventHandler(clients, context);

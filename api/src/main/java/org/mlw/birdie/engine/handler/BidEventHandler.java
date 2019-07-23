@@ -1,14 +1,12 @@
 package org.mlw.birdie.engine.handler;
 
+import com.google.common.eventbus.Subscribe;
 import org.mlw.birdie.Bid;
 import org.mlw.birdie.GameContext;
 import org.mlw.birdie.Hand;
 import org.mlw.birdie.Trick;
 import org.mlw.birdie.engine.ClientEventBroker;
-import org.mlw.birdie.engine.event.BidEvent;
-import org.mlw.birdie.engine.event.BidRequestEvent;
-import org.mlw.birdie.engine.event.BidWonEvent;
-import org.mlw.birdie.engine.event.TurnEvent;
+import org.mlw.birdie.engine.event.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,8 +18,8 @@ public class BidEventHandler {
 
     private static final Logger log = LoggerFactory.getLogger(BidEventHandler.class);
 
-    private GameContext context = null;
-    private ClientEventBroker clients = null;
+    private GameContext context;
+    private ClientEventBroker clients;
 
     private int bidderIndex;
     private int biddersLeft;
@@ -31,14 +29,20 @@ public class BidEventHandler {
     public BidEventHandler(ClientEventBroker clients, GameContext context) {
         this.clients = clients;
         this.context = context;
+    }
+
+    @Subscribe
+    public void onHandDealtEvent(HandDealtEvent event){
+        this.previousBid = null;
         this.biddersLeft = context.getNumberOfPlayers();
-        this.bidderIndex = (context.getHand().getDealerIndex()+1)%context.getNumberOfPlayers();
+        this.bidderIndex = context.getHand() == null ? 1 : (context.getHand().getDealerIndex()+1)%context.getNumberOfPlayers();
         this.lastBid = new ArrayList<>(context.getNumberOfPlayers());
         for(int i=0; i<context.getNumberOfPlayers(); i++){
             lastBid.add(new Bid(i, 0));
         }
     }
 
+    @Subscribe
     public void onBidEvent(BidEvent event) {
         Hand hand = context.getHand();
         Bid bid = event.getBid();

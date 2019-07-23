@@ -1,5 +1,6 @@
 package org.mlw.birdie.engine.handler;
 
+import com.google.common.eventbus.Subscribe;
 import org.mlw.birdie.*;
 import org.mlw.birdie.engine.ClientEventBroker;
 import org.mlw.birdie.engine.DefaultGameContext;
@@ -7,6 +8,7 @@ import org.mlw.birdie.engine.event.CardPlayedEvent;
 import org.mlw.birdie.engine.event.DealRequestEvent;
 import org.mlw.birdie.engine.event.TrickWonEvent;
 import org.mlw.birdie.engine.event.TurnEvent;
+import org.mlw.birdie.ScoringStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,12 +18,15 @@ public class CardPlayedEventHandler {
 
     private final DefaultGameContext context;
     private final ClientEventBroker clients;
+    private final ScoringStrategy scoringStrategy;
 
-    public CardPlayedEventHandler(ClientEventBroker clients, DefaultGameContext context) {
+    public CardPlayedEventHandler(ClientEventBroker clients, DefaultGameContext context, ScoringStrategy scoringStrategy) {
         this.context = context;
         this.clients = clients;
+        this.scoringStrategy = scoringStrategy;
     }
 
+    @Subscribe
     public void onCardPlayedEvent(CardPlayedEvent event){
         log.info(String.format("Player%d played the %s", event.getSeat(), event.getCard()));
 
@@ -52,7 +57,7 @@ public class CardPlayedEventHandler {
 
             //If player did not follow suite, check if play is valid...
             if( !lead.getSuit().equals(card.getSuit()) ){
-                long count = context.getHand().getCards(event.getSeat()).stream().filter(c -> c.getSuit().equals(lead.getSuit())).count();
+                long count = context.getHand().getCards(event.getSeat()).stream().filter(c -> lead.getSuit().equals(c.getSuit())).count();
                 if( count > 0 ){
                     log.info(String.format("Player%d did not follow suit!", event.getSeat()));
                     //todo: re-prompt could cause an infinite loop!
@@ -76,12 +81,9 @@ public class CardPlayedEventHandler {
                     trick = hand.createTrick(seat);
                 } else {
                     determineWinnerOfHand(hand);
-
-                    //Start a new hand...
-                    Hand nextHand = context.newHand();
-                    trick = nextHand.createTrick((hand.getNextDealerIndex()));
-
+                    //todo: add up the score!
                     clients.getServer().post(new DealRequestEvent());
+                    return;
                 }
             }
 
@@ -143,12 +145,7 @@ public class CardPlayedEventHandler {
 
         log.info("Total:    " + total + " points.");
 
-        //Assume that this is a teams game of 4 players...
-        int[] teams = new int[scores.length];
-        for(int i=0, length=scores.length; i<length; i++){
-            teams[i] = scores[i%length] + scores[(i+2)%length];
-            log.info(i + " --> " + teams[i]);
-        }
+        int[] teams = scoringStrategy.calculate(hand);
 
         Bid bid = hand.getMaxBid();
         boolean bidMade = teams[bid.getSeat()] >= bid.getValue();

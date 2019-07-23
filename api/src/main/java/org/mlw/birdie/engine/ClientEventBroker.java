@@ -2,8 +2,10 @@ package org.mlw.birdie.engine;
 
 import com.google.common.eventbus.EventBus;
 import org.mlw.birdie.PlayerAdapter;
+import org.mlw.birdie.engine.event.GenericSubscriberExceptionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 
 public class ClientEventBroker {
@@ -22,7 +24,7 @@ public class ClientEventBroker {
         this.players = new PlayerAdapter[numberOfSeats];
 
         for(int i=0; i<numberOfSeats; i++){
-            this.clients[i] = new EventBus("Player" + i);;
+            this.clients[i] = new EventBus(new GenericSubscriberExceptionHandler());
         }
     }
 
@@ -38,16 +40,17 @@ public class ClientEventBroker {
         return player;
     }
 
-    public void post(Object event){
+    public Object post(Object event){
         for(EventBus eventBus: clients){
             eventBus.post(event);
         }
+        return event;
     }
 
     public void post(Object event, Integer... seats){
         if( seats != null){
             for(Integer seat : seats) {
-                if( seat >=0 && seat < clients.length) {
+                if( seat >=0 && seat < clients.length && clients[seat.intValue()] != null) {
                     clients[seat.intValue()].post(event);
                 }
             }

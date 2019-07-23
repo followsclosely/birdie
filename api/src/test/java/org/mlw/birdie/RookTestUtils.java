@@ -1,8 +1,5 @@
 package org.mlw.birdie;
 
-import org.mlw.birdie.engine.handler.CardPlayedEventHandler;
-import org.mlw.birdie.engine.handler.CardPlayedEventHandlerTest;
-
 public class RookTestUtils {
 
     private static final Deck deck = DeckFactory.getStandardDeck();

@@ -22,7 +22,7 @@ public class BasicPlayerAdapter extends AbstractPlayerAdapter {
 
     @Subscribe
     public void onTurnEvent(TurnEvent event){
-        if( event.getSeat() == seat) {
+        if( event.getSeat() == seat || cards.size() == 0) {
             Trick trick = event.getTrick();
 
             //If you are the leader, play the last card in your hand.

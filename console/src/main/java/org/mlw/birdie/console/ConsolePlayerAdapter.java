@@ -39,10 +39,10 @@ public class ConsolePlayerAdapter extends AbstractPlayerAdapter {
             return readLine();
         }
     }
-    private synchronized int readInteger() {
+    private synchronized Integer readInteger() {
         try {
-            String line = readLine();
-            return ( line != null && line.trim().length() > 0) ? Integer.parseInt(line) : null;
+            String line = readLine().trim();
+            return ( line.length() > 0) ? Integer.parseInt(line) : null;
         } catch (Exception ignore){
             System.out.println(ignore.getMessage());
             return readInteger();
@@ -58,16 +58,13 @@ public class ConsolePlayerAdapter extends AbstractPlayerAdapter {
 
     @Subscribe
     public void onBidRequestEvent(BidRequestEvent event) {
-
         int maxBid = event.getHand().getMaxBid().getValue();
-
         System.out.println("  Enter bid greater than or equal to " + (maxBid+5) + " (leave blank to pass): ");
-        //String line = readLine();
-        //Integer bid = ( line != null && line.trim().length() > 0) ? Integer.parseInt(line) : null;
         Integer bid = readInteger();
 
         post(new BidEvent(this, new Bid(seat, bid)));
     }
+
     @Subscribe
     public void onBidEvent(BidEvent event) {
         System.out.println(String.format("  Player%d bid %d", event.getBid().getSeat(), event.getBid().getValue()));
@@ -136,10 +133,5 @@ public class ConsolePlayerAdapter extends AbstractPlayerAdapter {
         System.out.println("Select a Card: ");
         Card card = cards.get(Integer.parseInt(readLine()));
         post(new CardPlayedEvent(this, card, this.seat));
-    }
-
-    @Subscribe
-    public void onCardPlayedEvent(CardPlayedEvent event) {
-        System.out.println("########### " + name + "############## " + event);
     }
 }
