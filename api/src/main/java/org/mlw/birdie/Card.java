@@ -4,7 +4,17 @@ public class Card implements Comparable<Card>{
 
     private Suit suit = null;
     public enum Suit{
-        Red,Black,Yellow,Green
+        Red,Black,Yellow,Green;
+
+        public static Suit instance(String c, Suit d){
+            switch(c){
+                case "R": return Red;
+                case "B": return Black;
+                case "Y": return Yellow;
+                case "G": return Green;
+                default: return d;
+            }
+        }
     }
     private int rank;
     private int number;

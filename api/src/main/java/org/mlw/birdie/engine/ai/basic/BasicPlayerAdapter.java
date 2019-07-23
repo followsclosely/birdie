@@ -8,7 +8,6 @@ import org.mlw.birdie.Card;
 import org.mlw.birdie.Trick;
 import org.mlw.birdie.engine.AbstractPlayerAdapter;
 import org.mlw.birdie.engine.event.*;
-import org.mlw.birdie.engine.handler.BidEventHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

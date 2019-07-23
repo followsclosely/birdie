@@ -72,15 +72,19 @@ public class CardPlayedEventHandler {
                 int seat = determineWinnerOfTrick(hand);
                 clients.post(new TrickWonEvent(this, trick));
 
-                //If this is the end of the hand, then do end of hand processing.
-                trick = hand.createTrick(seat);
+                if ( context.getHand().getCards(seat).size() > 0 ) {
+                    //If this is the end of the hand, then do end of hand processing.
+                    trick = hand.createTrick(seat);
+                } else {
+                    determineWinnerOfHand(hand);
+                }
             }
 
             clients.post(new TurnEvent(this, trick, trick.getSeat()), trick.getSeat());
         }
     }
 
-    private int determineWinnerOfTrick(Hand hand){
+    protected int determineWinnerOfTrick(Hand hand){
         Trick trick = hand.getTrick();
         Card lead = trick.getCards().get(0);
         int leader = trick.getSeat();
@@ -106,5 +110,32 @@ public class CardPlayedEventHandler {
 
         log.info(trick.getCards() + " Player" + leader + " won the trick with a " + trick.getCards().get(winner));
         return leader;
+    }
+
+    protected int determineWinnerOfHand(Hand hand){
+        //Print a summary of all the tricks.
+        for(Trick trick : hand.getTricks()) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("Player").append(trick.getLeader()).append(" ");
+            for(int i=0; i<context.getNumberOfPlayers(); i++){
+                int index = (i+trick.getLeader()) % context.getNumberOfPlayers();
+                char x = ( trick.getWinner() == index ? '*' : ' ');
+                sb.append( "|" + x + trick.getCards().get(index) + x);
+            }
+            sb.append("| Player").append( ((trick.getLeader() + trick.getWinner()) % context.getNumberOfPlayers()));
+            sb.append(" won " + trick.getPoints() + " points");
+            log.info(sb.toString());
+        }
+
+        int[] scores = hand.getScores();
+
+        int total=0;
+        for(int i=0; i<context.getNumberOfPlayers(); i++){
+            total+=scores[i];
+            log.info("Player" + i + ": " + scores[i] + " points.");
+        }
+
+        log.info("Total:    " + total + " points.");
+        return 0;
     }
 }
