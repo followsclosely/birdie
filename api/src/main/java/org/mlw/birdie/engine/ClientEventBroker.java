@@ -1,11 +1,11 @@
 package org.mlw.birdie.engine;
 
 import com.google.common.eventbus.EventBus;
-import org.mlw.birdie.PlayerAdapter;
-import org.mlw.birdie.engine.event.GenericSubscriberExceptionHandler;
+import org.mlw.birdie.engine.event.support.GenericSubscriberExceptionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 
 
 public class ClientEventBroker {
@@ -15,24 +15,32 @@ public class ClientEventBroker {
     private int numberOfSeats;
     private EventBus server = null;
     private EventBus[] clients = null;
-    public PlayerAdapter[] players = null;
+    public AbstractPlayerAdapter[] players = null;
 
     public ClientEventBroker(EventBus server, int numberOfSeats){
         this.server = server;
         this.numberOfSeats = numberOfSeats;
         this.clients = new EventBus[numberOfSeats];
-        this.players = new PlayerAdapter[numberOfSeats];
+        this.players = new AbstractPlayerAdapter[numberOfSeats];
 
         for(int i=0; i<numberOfSeats; i++){
             this.clients[i] = new EventBus(new GenericSubscriberExceptionHandler());
         }
     }
 
-    public PlayerAdapter addPlayer(PlayerAdapter player){
+    public AbstractPlayerAdapter addPlayer(AbstractPlayerAdapter player){
+        return addPlayer(player, null);
+    }
+    public AbstractPlayerAdapter addPlayer(AbstractPlayerAdapter player, List<Object> listeners){
         for(int i=0, length=players.length; i<length; i++){
             if( players[i] == null){
                 log.info("Adding player: " + player.getName());
                 players[i] = player;
+
+                if(listeners!=null) for(Object listener : listeners){
+                    clients[i].register(listener);
+                }
+
                 clients[i].register(player);
                 break;
             }
@@ -59,7 +67,14 @@ public class ClientEventBroker {
         }
     }
 
-    public EventBus getServer() { return server; }
+    //public EventBus getServer() { return server; }
+    public Object postToServer(Object event){
+        if( server != null && event != null) {
+            server.post(event);
+        }
+        return event;
+
+    }
 
     public int getNumberOfSeats() { return numberOfSeats; }
     public String getName(int seat) { return players[seat].getName(); }

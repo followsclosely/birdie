@@ -1,4 +1,4 @@
-package org.mlw.birdie.engine.event;
+package org.mlw.birdie.engine.event.support;
 
 import com.google.common.eventbus.SubscriberExceptionContext;
 import com.google.common.eventbus.SubscriberExceptionHandler;

@@ -3,12 +3,11 @@ package org.mlw.birdie.engine;
 import com.google.common.eventbus.EventBus;
 import org.mlw.birdie.Deck;
 import org.mlw.birdie.DeckFactory;
-import org.mlw.birdie.PlayerAdapter;
 import org.mlw.birdie.ScoringStrategy;
 import org.mlw.birdie.engine.ai.basic.BasicPlayerAdapter;
 import org.mlw.birdie.engine.event.DealRequestEvent;
 import org.mlw.birdie.engine.event.GameStartedEvent;
-import org.mlw.birdie.engine.event.GenericSubscriberExceptionHandler;
+import org.mlw.birdie.engine.event.support.GenericSubscriberExceptionHandler;
 import org.mlw.birdie.engine.handler.BidEventHandler;
 import org.mlw.birdie.engine.handler.CardPlayedEventHandler;
 import org.mlw.birdie.engine.handler.DealRequestEventHandler;
@@ -27,14 +26,27 @@ public class RookEngineBuilder {
     private EventBus serverBus;
     private int numberOfSeats = 4;
     private ClientEventBroker clients;
-    private List<PlayerAdapter> playerAdapterList = new ArrayList<>();
+    private List<AbstractPlayerAdapter> playerAdapterList = new ArrayList<>();
+    private List<List<Object>> listeners = new ArrayList<>();
     private DefaultGameContext context;
     private ScoringStrategy scoringStrategy;
 
+    public RookEngineBuilder(int numberOfSeats){
+        this.numberOfSeats = numberOfSeats;
+    }
+
     public RookEngineBuilder deck(Deck deck) { this.deck = deck; return this;}
     public RookEngineBuilder server(EventBus serverBus) { this.serverBus = serverBus;  return this; }
-    public RookEngineBuilder seats(int numberOfSeats) { this.numberOfSeats = numberOfSeats;  return this; }
-    public RookEngineBuilder player(PlayerAdapter player){ playerAdapterList.add(player); return this; }
+    public RookEngineBuilder player(AbstractPlayerAdapter player){
+        return player(player,null);
+    }
+    public RookEngineBuilder player(AbstractPlayerAdapter player, Object listener){
+        playerAdapterList.add(player);
+        ArrayList listeners = new ArrayList();
+        if( listener != null) listeners.add(listener);
+        this.listeners.add(listeners);
+        return this;
+    }
     public RookEngineBuilder context(DefaultGameContext context) {this.context = context; return this; }
     public RookEngineBuilder scoring(ScoringStrategy scoring) { this.scoringStrategy = scoring; return this; }
 
@@ -57,16 +69,22 @@ public class RookEngineBuilder {
         }
 
         log.info("Adding players...");
-        for(PlayerAdapter player : playerAdapterList){
+        for(int i=0, length=playerAdapterList.size(); i<length; i++){
+            AbstractPlayerAdapter player = playerAdapterList.get(i);
+            List<Object> listeners = this.listeners.get(i);
+
             log.info("  ...adding " + player.getName());
-            this.clients.addPlayer(player);
+            this.clients.addPlayer(player, listeners);
         }
+
         for(int i=playerAdapterList.size(); i<numberOfSeats; i++){
             this.clients.addPlayer(new BasicPlayerAdapter(serverBus, String.format("Player %d", i), i));
         }
 
         log.info("Creating a new GameContext and registering EventHandlers.");
         this.context = new DefaultGameContext(clients.getNumberOfSeats());
+
+        //Add all the EventHandlers.
         this.serverBus.register(new DealRequestEventHandler(clients, context, deck));
         this.serverBus.register(new CardPlayedEventHandler(clients, context, scoringStrategy));
         this.serverBus.register(new BidEventHandler(clients, context));

@@ -25,7 +25,7 @@ public class DeckFactoryTest {
 
         int count = 0;
         for (Card card : cards) {
-            if (card.getSuit() == null) {
+            if (card.getNumber() == 0) {
                 count++;
             }
         }

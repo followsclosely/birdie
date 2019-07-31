@@ -1,8 +1,8 @@
 package org.mlw.birdie.console;
 
 import com.google.common.eventbus.EventBus;
-import org.mlw.birdie.engine.event.GenericSubscriberExceptionHandler;
 import org.mlw.birdie.engine.RookEngineBuilder;
+import org.mlw.birdie.engine.event.support.GenericSubscriberExceptionHandler;
 
 import java.io.IOException;
 
@@ -14,8 +14,7 @@ public class Main {
 
         EventBus serverBus = new EventBus(new GenericSubscriberExceptionHandler());
 
-        new RookEngineBuilder()
-                .seats(4)
+        new RookEngineBuilder(4)
                 .server(serverBus)
                 .player(new ConsolePlayerAdapter(serverBus))
                 .build().run();

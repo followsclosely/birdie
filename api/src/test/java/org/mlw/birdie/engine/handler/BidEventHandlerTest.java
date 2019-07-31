@@ -15,7 +15,7 @@ public class BidEventHandlerTest {
     @Test
     public void testSimple() {
         DefaultGameContext context = new DefaultGameContext(4);
-        ClientEventBroker clients = new ClientEventBroker(context.getNumberOfPlayers());
+        ClientEventBroker clients = new ClientEventBroker(null, context.getNumberOfPlayers());
         context.newHand();
 
         BidEventHandler handler = new BidEventHandler(clients, context);
@@ -35,7 +35,7 @@ public class BidEventHandlerTest {
     @Test
     public void testOutOfOrderBid() {
         DefaultGameContext context = new DefaultGameContext(4);
-        ClientEventBroker clients = new ClientEventBroker(context.getNumberOfPlayers());
+        ClientEventBroker clients = new ClientEventBroker(null, context.getNumberOfPlayers());
         context.newHand();
 
         BidEventHandler handler = new BidEventHandler(clients, context);
@@ -52,7 +52,7 @@ public class BidEventHandlerTest {
     @Test
     public void testTooLowBid() {
         DefaultGameContext context = new DefaultGameContext(4);
-        ClientEventBroker clients = new ClientEventBroker(context.getNumberOfPlayers());
+        ClientEventBroker clients = new ClientEventBroker(null, context.getNumberOfPlayers());
         context.newHand();
 
         BidEventHandler handler = new BidEventHandler(clients, context);

@@ -3,12 +3,11 @@ package org.mlw.birdie.engine;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import org.mlw.birdie.Card;
-import org.mlw.birdie.PlayerAdapter;
 import org.mlw.birdie.engine.event.HandDealtEvent;
 
 import java.util.List;
 
-public abstract class AbstractPlayerAdapter implements PlayerAdapter {
+public abstract class AbstractPlayerAdapter {
 
     private EventBus server;
     protected String name;
@@ -25,12 +24,14 @@ public abstract class AbstractPlayerAdapter implements PlayerAdapter {
     }
 
     public void post(Object object){
-        server.post(object);
+        if( server != null && object != null) {
+            server.post(object);
+        }
     }
 
     @Subscribe
     public void onHandDealtEvent(HandDealtEvent event) {
-        this.cards = event.getHand().getCards(this);
+        this.cards = event.getCards();
     }
 
     public String getName() { return name; }

@@ -28,9 +28,6 @@ public class Hand {
     public int getDealerIndex() { return dealerIndex; }
     public int getNextDealerIndex() { return (dealerIndex+1)%seats; }
 
-    public List<Card> getCards(PlayerAdapter player){
-        return cards.get(player.getSeat());
-    }
     public List<Card> getCards(int seat){
         return cards.get(seat);
     }
@@ -79,6 +76,7 @@ public class Hand {
         return trick;
     }
 
+    //todo: this logic should not be in this pojo.
     public int[] getScores(){
         int[] scores = new int[seats];
 

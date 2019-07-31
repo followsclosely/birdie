@@ -54,4 +54,9 @@ public class Card implements Comparable<Card>{
         else
             return rank == card2.rank ? 0 : rank > card2.rank ? 1 : -1;
     }
+
+    @Override
+    public int hashCode() {
+        return suit==null ? -1 : ((suit.ordinal()*100) + number);
+    }
 }

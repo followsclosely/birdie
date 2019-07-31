@@ -4,11 +4,8 @@ import com.google.common.eventbus.Subscribe;
 import org.mlw.birdie.*;
 import org.mlw.birdie.engine.ClientEventBroker;
 import org.mlw.birdie.engine.DefaultGameContext;
-import org.mlw.birdie.engine.event.CardPlayedEvent;
-import org.mlw.birdie.engine.event.DealRequestEvent;
-import org.mlw.birdie.engine.event.TrickWonEvent;
-import org.mlw.birdie.engine.event.TurnEvent;
-import org.mlw.birdie.ScoringStrategy;
+import org.mlw.birdie.engine.event.*;
+import org.mlw.birdie.engine.scoring.PartnerScoringStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,10 +17,19 @@ public class CardPlayedEventHandler {
     private final ClientEventBroker clients;
     private final ScoringStrategy scoringStrategy;
 
+    public CardPlayedEventHandler(ClientEventBroker clients, DefaultGameContext context){
+        this(clients, context, new PartnerScoringStrategy());
+    }
     public CardPlayedEventHandler(ClientEventBroker clients, DefaultGameContext context, ScoringStrategy scoringStrategy) {
-        this.context = context;
         this.clients = clients;
+        this.context = context;
         this.scoringStrategy = scoringStrategy;
+    }
+
+    @Subscribe
+    public void onTrumpSelectedEvent(TrumpSelectedEvent event){
+        log.info("Event = " + event);
+        clients.post(event);
     }
 
     @Subscribe
@@ -48,6 +54,8 @@ public class CardPlayedEventHandler {
         if( trick.getCards().isEmpty() ){
             context.getHand().getCards(event.getSeat()).remove(card);
             trick.getCards().add(card);
+            //Send this CardPlayedEvent to all the clients...
+            clients.post(event);
             clients.post(new TurnEvent(this, trick, trick.getSeat()), trick.getSeat());
             return;
         }
@@ -68,6 +76,8 @@ public class CardPlayedEventHandler {
 
             context.getHand().getCards(event.getSeat()).remove(card);
             trick.getCards().add(card);
+            //Send this CardPlayedEvent to all the clients...
+            clients.post(event);
 
             //If the leader is up again, then end the hand.
             if (trick.getLeader() == trick.getSeat()) {
@@ -82,7 +92,7 @@ public class CardPlayedEventHandler {
                 } else {
                     determineWinnerOfHand(hand);
                     //todo: add up the score!
-                    clients.getServer().post(new DealRequestEvent());
+                    clients.postToServer(new DealRequestEvent());
                     return;
                 }
             }

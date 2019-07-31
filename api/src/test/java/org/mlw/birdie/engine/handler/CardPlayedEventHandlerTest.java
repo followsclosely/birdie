@@ -67,7 +67,7 @@ public class CardPlayedEventHandlerTest {
         ClientEventBroker clients = new ClientEventBroker(null, context.getNumberOfPlayers());
         MockPlayerAdapter[] players = new MockPlayerAdapter[context.getNumberOfPlayers()];
         for (int i=0; i<context.getNumberOfPlayers(); i++){
-            players[i] = (MockPlayerAdapter)clients.addPlayer(new MockPlayerAdapter());
+            players[i] = (MockPlayerAdapter)clients.addPlayer(new MockPlayerAdapter(null, i));
         }
 
         context.newHand().setTrump(Card.Suit.Red);

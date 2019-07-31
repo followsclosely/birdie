@@ -32,7 +32,7 @@ public class BidEventHandler {
     }
 
     @Subscribe
-    public void onHandDealtEvent(HandDealtEvent event){
+    public void onHandDealtEvent(HandDealtEvent x){
         this.previousBid = null;
         this.biddersLeft = context.getNumberOfPlayers();
         this.bidderIndex = context.getHand() == null ? 1 : (context.getHand().getDealerIndex()+1)%context.getNumberOfPlayers();

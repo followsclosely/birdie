@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DeckFactory {
+
     public static Deck getStandardDeck(){
         List<Card> cards = new ArrayList<>();
         for(int i=1; i<15; i++){

@@ -63,12 +63,13 @@ public class DealRequestEventHandler {
         for(i=0; i<context.getNumberOfPlayers(); i++){
             Collections.sort(dealerPiles[i]);
             log.info("    " + this.clients.players[i].getName() + ": " + dealerPiles[i]);
-            this.context.getHand().getCards(this.clients.players[i]).clear();
-            this.context.getHand().getCards(this.clients.players[i]).addAll(dealerPiles[i]);
+            this.context.getHand().getCards(i).clear();
+            this.context.getHand().getCards(i).addAll(dealerPiles[i]);
+
+            this.clients.post(new HandDealtEvent(hand, dealerPiles[i]), i);
         }
 
-        this.clients.getServer().post(new HandDealtEvent(hand));
-        this.clients.post(new HandDealtEvent(hand));
+        this.clients.postToServer(new HandDealtEvent(null, null));
 
         int currentBidder = (context.getDealerIndex()+1)%context.getNumberOfPlayers();
         this.clients.post(new BidRequestEvent(this, context.getHand(), currentBidder), currentBidder);

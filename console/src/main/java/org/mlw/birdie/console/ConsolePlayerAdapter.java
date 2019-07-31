@@ -49,10 +49,9 @@ public class ConsolePlayerAdapter extends AbstractPlayerAdapter {
         }
     }
 
-
     @Subscribe
     public void onHandDealtEvent(HandDealtEvent event) {
-        this.cards = event.getHand().getCards(this);
+        this.cards = event.getCards();
         System.out.println(cards);
     }
 
@@ -76,7 +75,7 @@ public class ConsolePlayerAdapter extends AbstractPlayerAdapter {
         Hand hand = event.getHand();
 
         List<Card> kitty = new ArrayList<>(hand.getKitty());
-        List<Card> cards = new ArrayList<>(hand.getCards(this));
+        List<Card> cards = new ArrayList<>(hand.getCards(this.getSeat()));
         cards.addAll(kitty);
         Collections.sort(cards);
 
@@ -114,10 +113,10 @@ public class ConsolePlayerAdapter extends AbstractPlayerAdapter {
         hand.getKitty().clear();
         hand.getKitty().addAll(kitty);
 
-        hand.getCards(this).clear();
-        hand.getCards(this).addAll(cards);
+        hand.getCards(this.getSeat()).clear();
+        hand.getCards(this.getSeat()).addAll(cards);
 
-        super.post(new TrumpSelectedEvent(this, hand.getKitty(), hand.getTrump(), seat));
+        post(new TrumpSelectedEvent(this, hand.getKitty(), hand.getTrump(), seat));
     }
 
     @Subscribe
