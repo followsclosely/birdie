@@ -21,6 +21,8 @@ public class CardTablePanel extends JPanel implements PlayerAdapter {
     private CardImages images;
     private List<Card> cards = new ArrayList<>();
 
+    private Card[] hand = new Card[4];
+
     private boolean cheatMode = true;
     private List<Card>[] cheat = new List[4];
 
@@ -62,6 +64,14 @@ public class CardTablePanel extends JPanel implements PlayerAdapter {
             }
         }
 
+        int xcenter = (int) size.getWidth()/2-images.getWidth()/2;
+        int ycenter = (int) size.getHeight()/2-images.getHeight()/2;
+
+        if(hand[0]!= null) g.drawImage(images.getCard(hand[0]), xcenter, ycenter+(images.getHeight()/2)+15, this);
+        if(hand[1]!= null) g.drawImage(images.getCard(hand[1]),  xcenter - (images.getWidth()/2) - 15, ycenter, this);
+        if(hand[2]!= null) g.drawImage(images.getCard(hand[2]), xcenter, ycenter-(images.getHeight()/2)-15, this);
+        if(hand[3]!= null) g.drawImage(images.getCard(hand[3]), xcenter + (images.getWidth()/2) + 15, ycenter, this);
+
         if( this.cards != null ) {
             int x = (int) (size.getWidth() / 2) - ((cards.size() * offset) / 2) - (images.getWidth() / 3);
             int i = 0;
@@ -69,6 +79,8 @@ public class CardTablePanel extends JPanel implements PlayerAdapter {
                 g.drawImage(images.getCard(card), x + (offset * i++), (int) size.getHeight() - (images.getHeight() + 20), this);
             }
         }
+
+
     }
 
     @Override
@@ -98,13 +110,11 @@ public class CardTablePanel extends JPanel implements PlayerAdapter {
     @Override
     @Subscribe
     public void onBidRequestEvent(BidRequestEvent event) {
-
     }
 
     @Override
     @Subscribe
     public void onBidEvent(BidEvent event) {
-
     }
 
     @Override
@@ -135,7 +145,16 @@ public class CardTablePanel extends JPanel implements PlayerAdapter {
     }
 
     @Subscribe
+    public void onTrickWonEvent(TrickWonEvent event) throws InterruptedException {
+        Thread.sleep(5000);
+        for(int i=0; i<hand.length; i++) hand[i] = null;
+    }
+
+    @Subscribe
     public void onCardPlayedEvent(CardPlayedEvent event){
+
+        hand[event.getSeat()] = event.getCard();
+
         if( event.getSeat() == mySeat) {
             this.cards.remove(event.getCard());
             repaint();

@@ -126,11 +126,6 @@ public class ConsolePlayerAdapter extends AbstractConsolePlayerAdapter {
     }
 
     @Subscribe
-    public void onCheatEvent(CheatEvent event){
-        this.passEventDown(event);
-    }
-
-    @Subscribe
     public void handleDeadEvent(DeadEvent deadEvent) {
         this.passEventDown(deadEvent.getEvent());
     }
