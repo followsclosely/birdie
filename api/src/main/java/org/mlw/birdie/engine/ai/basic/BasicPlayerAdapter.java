@@ -11,13 +11,23 @@ import org.mlw.birdie.engine.event.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class BasicPlayerAdapter extends AbstractPlayerAdapter {
 
     private static final Logger log = LoggerFactory.getLogger(BasicPlayerAdapter.class);
 
+    protected List<Card> cards;
+
     public BasicPlayerAdapter(EventBus server, String name, int seat){
         super(server, name, seat);
+    }
+
+    @Subscribe
+    public void onHandDealtEvent(HandDealtEvent event) {
+        this.cards = new ArrayList<>(event.getCards());
     }
 
     @Subscribe
@@ -67,5 +77,10 @@ public class BasicPlayerAdapter extends AbstractPlayerAdapter {
         } else {
             log.error("A " + event.getClass() + " was received but not handled.");
         }
+    }
+
+    @Subscribe
+    public void onCardPlayedEvent(CardPlayedEvent event){
+        this.cards.remove(event.getCard());
     }
 }

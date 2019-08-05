@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -78,14 +79,37 @@ public class BidEventHandler {
             if (this.biddersLeft == 1) {
                 Bid winner = hand.getMaxBid();
                 log.info(String.format("  Player%d won the bid for %d points!", winner.getSeat(), winner.getValue()));
+
+                //Add the kitty to the players hand.
+                this.context.getHand().getCards(winner.getSeat()).addAll(this.context.getHand().getKitty());
+                Collections.sort(this.context.getHand().getCards(winner.getSeat()));
+
                 clients.post(new BidWonEvent(this, hand, winner.getSeat()), winner.getSeat());
 
-                Trick trick = hand.createTrick(winner.getSeat());
-                clients.post(new TurnEvent(this, trick, winner.getSeat()), winner.getSeat());
+                //Create the first trick for the CardPlayedEventHandler
+                hand.createTrick(winner.getSeat());
                 return;
             }
 
             clients.post(new BidRequestEvent(this, hand, this.bidderIndex), this.bidderIndex);
         }
+    }
+
+    @Subscribe
+    public void onTrumpSelectedEvent(TrumpSelectedEvent event){
+        log.info("Event = " + event);
+
+        this.context.getHand().setTrump(event.getTrump());
+        this.context.getHand().getKitty().clear();
+        this.context.getHand().getKitty().addAll(event.getKitty());
+        this.context.getHand().getCards(event.getSeat()).removeAll(event.getKitty());
+
+        log.info( event.getTrump() + " is Trump!");
+
+        //Send trump down to the clients...
+        clients.post(event);
+
+        Trick trick = this.context.getHand().getTrick();
+        clients.post(new TurnEvent(this, trick, trick.getLeader()), trick.getLeader());
     }
 }

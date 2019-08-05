@@ -27,12 +27,6 @@ public class CardPlayedEventHandler {
     }
 
     @Subscribe
-    public void onTrumpSelectedEvent(TrumpSelectedEvent event){
-        log.info("Event = " + event);
-        clients.post(event);
-    }
-
-    @Subscribe
     public void onCardPlayedEvent(CardPlayedEvent event){
         log.info(String.format("Player%d played the %s", event.getSeat(), event.getCard()));
 

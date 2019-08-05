@@ -26,8 +26,7 @@ public class RookEngineBuilder {
     private EventBus serverBus;
     private int numberOfSeats = 4;
     private ClientEventBroker clients;
-    private List<AbstractPlayerAdapter> playerAdapterList = new ArrayList<>();
-    private List<List<Object>> listeners = new ArrayList<>();
+    private List<Object[]> listeners = new ArrayList<>();
     private DefaultGameContext context;
     private ScoringStrategy scoringStrategy;
 
@@ -37,13 +36,7 @@ public class RookEngineBuilder {
 
     public RookEngineBuilder deck(Deck deck) { this.deck = deck; return this;}
     public RookEngineBuilder server(EventBus serverBus) { this.serverBus = serverBus;  return this; }
-    public RookEngineBuilder player(AbstractPlayerAdapter player){
-        return player(player,null);
-    }
-    public RookEngineBuilder player(AbstractPlayerAdapter player, Object listener){
-        playerAdapterList.add(player);
-        ArrayList listeners = new ArrayList();
-        if( listener != null) listeners.add(listener);
+    public RookEngineBuilder player(Object... listeners){
         this.listeners.add(listeners);
         return this;
     }
@@ -69,15 +62,14 @@ public class RookEngineBuilder {
         }
 
         log.info("Adding players...");
-        for(int i=0, length=playerAdapterList.size(); i<length; i++){
-            AbstractPlayerAdapter player = playerAdapterList.get(i);
-            List<Object> listeners = this.listeners.get(i);
-
-            log.info("  ...adding " + player.getName());
-            this.clients.addPlayer(player, listeners);
+        for(int i=0, length=listeners.size(); i<length; i++){
+            Object[] listeners = this.listeners.get(i);
+            log.info("  ...adding player" + i);
+            this.clients.addPlayer(listeners);
         }
 
-        for(int i=playerAdapterList.size(); i<numberOfSeats; i++){
+        for(int i=listeners.size(); i<numberOfSeats; i++){
+            log.info("  ...adding player" + i);
             this.clients.addPlayer(new BasicPlayerAdapter(serverBus, String.format("Player %d", i), i));
         }
 

@@ -1,27 +1,28 @@
 package org.mlw.birdie;
 
+import com.google.common.eventbus.DeadEvent;
 import com.google.common.eventbus.Subscribe;
-import org.mlw.birdie.engine.event.BidWonEvent;
-import org.mlw.birdie.engine.event.CardPlayedEvent;
-import org.mlw.birdie.engine.event.HandDealtEvent;
-import org.mlw.birdie.engine.event.TrumpSelectedEvent;
+import org.mlw.birdie.engine.client.PlayerAdapter;
+import org.mlw.birdie.engine.event.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-public class CardTablePanel extends JPanel {
+public class CardTablePanel extends JPanel implements PlayerAdapter {
 
     private static final Logger log = LoggerFactory.getLogger(CardTablePanel.class);
+
+    private int mySeat = 0;
 
     private CardImages images;
     private List<Card> cards = new ArrayList<>();
 
-    private Hand hand = null;
+    private boolean cheatMode = true;
+    private List<Card>[] cheat = new List[4];
 
     private int offset = 40;
 
@@ -36,24 +37,28 @@ public class CardTablePanel extends JPanel {
         Dimension size = getSize();
 
         //Show all cards if in cheat mode.
-        if( this.hand != null) {
+        if( cheatMode ) {
             int i = 0;
-            List<Card> cards1 = this.hand.getCards(1);
-            int y = (int)(size.getHeight()/2) - ((cards1.size()*offset)/2) - (images.getHeight()/2);
-            for (Card card : cards1) {
-                g.drawImage(images.getCard(card), 20, y + (offset * i++),this);
+            int y = 0;
+
+            if( cheat[1] != null && cheat[3] != null) {
+                y = (int) (size.getHeight() / 2) - ((cheat[1].size() * offset) / 2) - (images.getHeight() / 2);
+                for (Card card : cheat[1]) {
+                    g.drawImage(images.getCard(card), 20, y + (offset * i++), this);
+                }
+
+                int x = (int) (size.getWidth() / 2) - ((cheat[2].size() * offset) / 2) - (images.getWidth() / 3);
+                i = 0;
+                for (Card card : cheat[2]) {
+                    g.drawImage(images.getCard(card), x + (offset * i++), 20, this);
+                }
             }
 
-            List<Card> cards2 = this.hand.getCards(2);
-            int x = (int) (size.getWidth() / 2) - ((cards2.size() * offset) / 2) - (images.getWidth() / 3);
-            i = 0;
-            for (Card card : cards2) {
-                g.drawImage(images.getCard(card), x + (offset * i++), 20, this);
-            }
-
-            i = 0;
-            for (Card card : this.hand.getCards(3)) {
-                g.drawImage(images.getCard(card), (int)size.getWidth() - (images.getWidth() + 20), y + (offset * i++),this);
+            if( cheat[2] != null) {
+                i = 0;
+                for (Card card : cheat[3]) {
+                    g.drawImage(images.getCard(card), (int) size.getWidth() - (images.getWidth() + 20), y + (offset * i++), this);
+                }
             }
         }
 
@@ -66,39 +71,82 @@ public class CardTablePanel extends JPanel {
         }
     }
 
+    @Override
     @Subscribe
-    public void onHandDealtEvent(HandDealtEvent event) throws InterruptedException {
-
-        log.info("event = " + event);
-
-        this.cards.clear();
-        this.cards.addAll(event.getCards());
-        repaint();
-        Thread.sleep(500);
-        this.hand = event.getHand();
+    public void onGameStartedEvent(GameStartedEvent event) {
     }
 
     @Subscribe
-    public void onBidWonEvent(BidWonEvent event){
+    public void onCheatEvent(CheatEvent event){
+        if( cheatMode ){
+            for (int i=0; i<4; i++){
+                cheat[i] = new ArrayList(event.getContext().getHand().getCards(i));
+            }
+            repaint();
+        }
+    }
 
+    @Override
+    @Subscribe
+    public void onHandDealtEvent(HandDealtEvent event) {
         log.info("event = " + event);
-
-        this.cards.addAll(event.getHand().getKitty());
-        Collections.sort(this.cards);
+        this.cards.clear();
+        this.cards.addAll(event.getCards());
         repaint();
+    }
+
+    @Override
+    @Subscribe
+    public void onBidRequestEvent(BidRequestEvent event) {
+
+    }
+
+    @Override
+    @Subscribe
+    public void onBidEvent(BidEvent event) {
+
+    }
+
+    @Override
+    @Subscribe
+    public void onBidWonEvent(BidWonEvent event) {
+        log.info("event = " + event);
+        if( event.getSeat() == mySeat) {
+            this.cards.clear();
+            this.cards.addAll(event.getHand().getCards(mySeat));
+            repaint();
+        }
+    }
+
+    @Override
+    @Subscribe
+    public void onTrumpSelectedEvent(TrumpSelectedEvent event) {
+        log.info("event = " + event);
+        if( event.getSeat() == mySeat) {
+            this.cards.removeAll(event.getKitty());
+            repaint();
+        }
+    }
+
+    @Override
+    @Subscribe
+    public void onTurnEvent(TurnEvent event) {
+
     }
 
     @Subscribe
     public void onCardPlayedEvent(CardPlayedEvent event){
-        log.info("event = " + event);
-        this.cards.remove(event.getCard());
-        repaint();
+        if( event.getSeat() == mySeat) {
+            this.cards.remove(event.getCard());
+            repaint();
+        } else {
+            cheat[event.getSeat()].remove(event.getCard());
+            repaint();
+        }
     }
 
     @Subscribe
-    public void onTrumpSelectedEvent(TrumpSelectedEvent event){
-        log.info("event = " + event);
-        this.cards.removeAll(event.getKitty());
-        repaint();
+    public void handleDeadEvent(DeadEvent deadEvent) {
+        System.out.println("UNHANDLED EVENT: " + deadEvent);
     }
 }

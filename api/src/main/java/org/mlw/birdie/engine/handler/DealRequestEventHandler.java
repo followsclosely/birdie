@@ -7,6 +7,7 @@ import org.mlw.birdie.Hand;
 import org.mlw.birdie.engine.ClientEventBroker;
 import org.mlw.birdie.engine.DefaultGameContext;
 import org.mlw.birdie.engine.event.BidRequestEvent;
+import org.mlw.birdie.engine.event.CheatEvent;
 import org.mlw.birdie.engine.event.DealRequestEvent;
 import org.mlw.birdie.engine.event.HandDealtEvent;
 import org.slf4j.Logger;
@@ -62,14 +63,15 @@ public class DealRequestEventHandler {
 
         for(i=0; i<context.getNumberOfPlayers(); i++){
             Collections.sort(dealerPiles[i]);
-            log.info("    " + this.clients.players[i].getName() + ": " + dealerPiles[i]);
+            log.info("    Player" + i + ": " + dealerPiles[i]);
             this.context.getHand().getCards(i).clear();
             this.context.getHand().getCards(i).addAll(dealerPiles[i]);
 
-            this.clients.post(new HandDealtEvent(hand, dealerPiles[i]), i);
+            this.clients.post(new HandDealtEvent(this.context, hand, dealerPiles[i]), i);
         }
 
-        this.clients.postToServer(new HandDealtEvent(null, null));
+        this.clients.post(new CheatEvent(this.context), 0);
+        this.clients.postToServer(new HandDealtEvent(this.context, hand, null));
 
         int currentBidder = (context.getDealerIndex()+1)%context.getNumberOfPlayers();
         this.clients.post(new BidRequestEvent(this, context.getHand(), currentBidder), currentBidder);

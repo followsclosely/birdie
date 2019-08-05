@@ -1,62 +1,47 @@
 package org.mlw.birdie.console;
 
+import com.google.common.eventbus.DeadEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import org.mlw.birdie.Bid;
 import org.mlw.birdie.Card;
-import org.mlw.birdie.Hand;
 import org.mlw.birdie.Trick;
-import org.mlw.birdie.engine.AbstractPlayerAdapter;
 import org.mlw.birdie.engine.event.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-public class ConsolePlayerAdapter extends AbstractPlayerAdapter {
+public class ConsolePlayerAdapter extends AbstractConsolePlayerAdapter {
 
-    public ConsolePlayerAdapter(EventBus server) throws IOException {
-        super(server);
-        this.seat = 0;
-        System.out.println("Enter your Name: ");
-        this.name = readLine();
+    private static final Logger log = LoggerFactory.getLogger(ConsolePlayerAdapter.class);
+
+    protected List<Card> cards;
+
+    public ConsolePlayerAdapter(EventBus server) {
+        this(server, null);
+    }
+    public ConsolePlayerAdapter(EventBus server, EventBus next) {
+        super(server, next);
+
+        //System.out.println("Enter your Name: ");
+        //this.name = readLine();
         if( this.name == null || this.name.trim().length() == 0){
-            this.name = "Player 0";
-        }
-    }
-
-    private BufferedReader reader = null;
-    private synchronized String readLine() {
-        if( reader==null ){
-            reader = new BufferedReader(new InputStreamReader(System.in));
-        }
-        try {
-            return reader.readLine();
-        } catch (Exception ignore){
-            return readLine();
-        }
-    }
-    private synchronized Integer readInteger() {
-        try {
-            String line = readLine().trim();
-            return ( line.length() > 0) ? Integer.parseInt(line) : null;
-        } catch (Exception ignore){
-            System.out.println(ignore.getMessage());
-            return readInteger();
+            this.name = "Console0";
         }
     }
 
     @Subscribe
     public void onHandDealtEvent(HandDealtEvent event) {
-        this.cards = event.getCards();
-        System.out.println(cards);
+        this.passEventDown(event);
+        this.cards = new ArrayList<>(event.getCards());
+        System.out.println(this.cards);
     }
 
     @Subscribe
     public void onBidRequestEvent(BidRequestEvent event) {
+        this.passEventDown(event);
         int maxBid = event.getHand().getMaxBid().getValue();
         System.out.println("  Enter bid greater than or equal to " + (maxBid+5) + " (leave blank to pass): ");
         Integer bid = readInteger();
@@ -66,22 +51,24 @@ public class ConsolePlayerAdapter extends AbstractPlayerAdapter {
 
     @Subscribe
     public void onBidEvent(BidEvent event) {
+        this.passEventDown(event);
         System.out.println(String.format("  Player%d bid %d", event.getBid().getSeat(), event.getBid().getValue()));
     }
 
     @Subscribe
     public void onBidWonEvent(BidWonEvent event) {
+        this.passEventDown(event);
 
-        Hand hand = event.getHand();
+        //Set the cards locally...
+        this.cards.clear();
+        this.cards = new ArrayList<>(event.getHand().getCards(this.getSeat()));
 
-        List<Card> kitty = new ArrayList<>(hand.getKitty());
-        List<Card> cards = new ArrayList<>(hand.getCards(this.getSeat()));
-        cards.addAll(kitty);
-        Collections.sort(cards);
+        List<Card> kitty = new ArrayList<>();
+        //List<Card> cards = new ArrayList<>(event.getHand().getCards(this.getSeat()));
 
         System.out.println("Select a card to place back into the kitty  (ie: 1,3,5,7,9): ");
         for(int i=0, length=cards.size(); i<length; i++){
-            if( kitty.contains(cards.get(i))) {
+            if( event.getHand().getKitty().contains(cards.get(i))) {
                 System.out.print(" *" + String.format("%02d", i) + "* ");
             } else {
                 System.out.print("  " + String.format("%02d", i) + "  ");
@@ -95,9 +82,8 @@ public class ConsolePlayerAdapter extends AbstractPlayerAdapter {
 
         String line = readLine();
 
-        int delta = 0;
         for(String value : line.split(",")){
-            kitty.add(cards.remove(Integer.parseInt(value) - delta++));
+            kitty.add(cards.get(Integer.parseInt(value)));
         }
 
         System.out.println(cards + "  |  " + kitty);
@@ -106,21 +92,14 @@ public class ConsolePlayerAdapter extends AbstractPlayerAdapter {
         for(Card.Suit suit : Card.Suit.values()){
             System.out.println("  " + suit.ordinal() + ": " + suit);
         }
-        hand.setTrump(Card.Suit.values()[Integer.parseInt(readLine())]);
+        Card.Suit trump = Card.Suit.values()[Integer.parseInt(readLine())];
 
-        System.out.println( hand.getTrump() + " is Trump!");
-
-        hand.getKitty().clear();
-        hand.getKitty().addAll(kitty);
-
-        hand.getCards(this.getSeat()).clear();
-        hand.getCards(this.getSeat()).addAll(cards);
-
-        post(new TrumpSelectedEvent(this, hand.getKitty(), hand.getTrump(), seat));
+        post(new TrumpSelectedEvent(this, kitty, trump, seat));
     }
 
     @Subscribe
     public void onTurnEvent(TurnEvent event){
+        this.passEventDown(event);
         Trick trick = event.getTrick();
         System.out.println("Cards played: " + trick.getCards());
 
@@ -132,5 +111,27 @@ public class ConsolePlayerAdapter extends AbstractPlayerAdapter {
         System.out.println("Select a Card: ");
         Card card = cards.get(Integer.parseInt(readLine()));
         post(new CardPlayedEvent(this, card, this.seat));
+    }
+
+    @Subscribe
+    public void onTrumpSelectedEvent(TrumpSelectedEvent event){
+        this.passEventDown(event);
+        this.cards.removeAll(event.getKitty());
+    }
+
+    @Subscribe
+    public void onCardPlayedEvent(CardPlayedEvent event){
+        this.cards.remove(event.getCard());
+        this.passEventDown(event);
+    }
+
+    @Subscribe
+    public void onCheatEvent(CheatEvent event){
+        this.passEventDown(event);
+    }
+
+    @Subscribe
+    public void handleDeadEvent(DeadEvent deadEvent) {
+        this.passEventDown(deadEvent.getEvent());
     }
 }

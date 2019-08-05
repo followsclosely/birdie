@@ -9,6 +9,11 @@ public class TrumpSelectedEvent extends BasicEvent {
     private List<Card> kitty;
     private Card.Suit trump;
 
+    public TrumpSelectedEvent(Object source, Card.Suit trump, Integer seat) {
+        super(source, seat);
+        this.trump = trump;
+    }
+
     public TrumpSelectedEvent(Object source, List<Card> kitty, Card.Suit trump, Integer seat) {
         super(source, seat);
         this.kitty = kitty;
